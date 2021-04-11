@@ -53,10 +53,23 @@ class Impersonate(commands.Cog):
             await util.send_timed(channel, "The chat must be logged before you can generate messages")
 
 
-def setup(client):
-    client.add_cog(Impersonate(client))
+        @commands.command(pass_context=True,
+                     name="logchat")
+        async def logchat(ctx, limit=50000):
+            CHANNEL_HISTORY.clear()
+            channel = ctx.message.channel
+            await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
+            logging_message = await util.get_last_message(channel)
+            count = 0
 
-
+            async for message in channel.history(limit=limit):
+                count += 1
+                CHANNEL_HISTORY.append(message)
+                if count % 2000 == 0:
+                    await logging_message.edit(
+                        content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
+            await util.send_timed(channel, "Logging complete :white_check_mark:")
+            await logging_message.delete()
 
 
 async def build_relations(target, channel):
@@ -91,24 +104,6 @@ async def build_relations(target, channel):
         print(RELATIONS)
         RELATIONS[target.id]["all_words"].extend(word_objs)
         RELATIONS[target.id]["starters"].extend(starters)
-
-
-@bot.command(pass_context=True,
-             name="logchat")
-async def logchat(ctx, limit=50000):
-    CHANNEL_HISTORY.clear()
-    channel = ctx.message.channel
-    await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
-    logging_message = await tools.get_last_message(channel)
-    count = 0
-
-    async for message in channel.history(limit=limit):
-        count += 1
-        CHANNEL_HISTORY.append(message)
-        if count % 2000 == 0:
-            await logging_message.edit(content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
-    await tools.send_timed(channel, "Logging complete :white_check_mark:")
-    await logging_message.delete()
 
 
 async def add_user_lists(user):
@@ -167,4 +162,5 @@ class Word:
 
 
 
-bot.run(TOKEN)
+def setup(client):
+    client.add_cog(Impersonate(client))
