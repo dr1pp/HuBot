@@ -68,7 +68,7 @@ class Impersonate(commands.Cog):
                 if count % 2000 == 0:
                     await logging_message.edit(
                         content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
-            await util.send_timed(channel, "Logging complete :white_check_mark:")
+            await py_util.send_timed(channel, "Logging complete :white_check_mark:")
             await logging_message.delete()
 
 
