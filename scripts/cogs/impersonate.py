@@ -7,8 +7,6 @@ RELATIONS = {}
 
 CHANNEL_HISTORY = []
 
-CHAT_LOGGED = False
-
 
 class Impersonate(commands.Cog):
     def __init__(self, bot):
@@ -27,10 +25,10 @@ class Impersonate(commands.Cog):
             try:
                 target = await self.bot.fetch_user(target_id)
             except discord.ext.commands.errors.CommandInvokeError:
-                await ctx.send(f"{ctx.message.author.mention} The user you tagged, {user}, could not be found")
+                await ctx.send(f"{ctx.message.author.mention} The user you tagged, {user}, could not be found", delete_after=5)
                 return
             if target is None:
-                await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
+                await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=10)
             if target.id not in RELATIONS:
                 await build_relations(target, channel)
             word_objs = RELATIONS[target.id]["all_words"]
@@ -67,7 +65,7 @@ class Impersonate(commands.Cog):
         async for message in channel.history(limit=limit):
             count += 1
             CHANNEL_HISTORY.append(message)
-            if count % 2000 == 0:
+            if count % (limit / 10) == 0:
                 await logging_message.edit(
                     content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
         await channel.send("Logging complete :white_check_mark:", delete_after=5)
