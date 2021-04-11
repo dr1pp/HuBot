@@ -21,7 +21,8 @@ class Impersonate(commands.Cog):
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
-            target_id = int(str([c for c in user.split() if c.isdigit()]))  # TODO: Implement this into a discord util library
+            target_id = int(user[-1:-18])
+            await ctx.send(target_id)
             try:
                 target = await self.bot.fetch_user(target_id)
             except discord.errors.NotFound:
