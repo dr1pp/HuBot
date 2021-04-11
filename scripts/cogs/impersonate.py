@@ -21,9 +21,12 @@ class Impersonate(commands.Cog):
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
+        await channel.send(ctx, user, sentences)
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
+            await channel.send(f"target_id = {target_id}")
             target = self.bot.get_user(target_id)
+            await channel.send(f"target = {target}")
             if target is None:
                 await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
             print("Building message")
