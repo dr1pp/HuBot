@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random
+import py_util
 
 
 RELATIONS = {}
@@ -20,7 +21,7 @@ class Impersonate(commands.Cog):
                  aliases=["test"])
     async def impersonate(self, ctx, user, sentences=1):
         channel = ctx.message.channel
-        command_msg = await channel.fetch_message(channel.last_message_id)
+        command_msg = await
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
