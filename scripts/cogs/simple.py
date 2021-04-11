@@ -2,8 +2,8 @@ from discord.ext import commands
 
 
 class SimpleCog(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.command(name="hello")
@@ -11,5 +11,5 @@ class SimpleCog(commands.Cog):
         await ctx.send("hie :/")
 
 
-def setup(client):
-    client.add_cog(SimpleCog(client))
+def setup(bot):
+    bot.add_cog(SimpleCog(bot))
