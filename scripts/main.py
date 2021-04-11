@@ -3,6 +3,7 @@ import util
 import os
 
 
+
 from discord.ext.commands import Bot
 from doppelganger import build_relations
 from markov_chain import Word
@@ -25,6 +26,10 @@ async def ping(ctx):
 @client.command(pass_context=True,
                 name="imp")
 async def imp(ctx, user, message_count):
+    channel = ctx.channel
+    cmd_msg = await util.get_last_message(channel)
+    await cmd_msg.delete()
+
 
 
 
@@ -63,7 +68,7 @@ async def impersonate(ctx, user, sentences=1):
             message += ". "
         await channel.send(f"**{target}:** {message}")
     else:
-        await tools.send_timed(channel, "The chat must be logged before you can generate messages")
+        await util.send_timed(channel, "The chat must be logged before you can generate messages")
 
 
 
