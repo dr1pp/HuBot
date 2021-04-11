@@ -53,7 +53,7 @@ class Impersonate(commands.Cog):
 
     @commands.command(pass_context=True,
                  name="logchat")
-    async def logchat(ctx, limit=50000):
+    async def logchat(self, ctx, limit=50000):
         CHANNEL_HISTORY.clear()
         channel = ctx.message.channel
         await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
