@@ -19,7 +19,7 @@ if __name__ == "__main__":
 @bot.event
 async def on_ready():
     me = await bot.fetch_user(210454616876253184)
-    await me.send(f"✔️Online - {datetime.datetime.now()}")
+    await me.send(f"[ ✅ Online ] - {datetime.datetime.now()}")
 
 
 bot.run(TOKEN)

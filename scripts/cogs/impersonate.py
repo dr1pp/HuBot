@@ -24,11 +24,10 @@ class Impersonate(commands.Cog):
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
-            target = self.bot.fetch_user(target_id)
+            target = await self.bot.fetch_user(target_id)
             await channel.send(f"target = {target}")
             if target is None:
                 await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
-            print("Building message")
             if target.id not in RELATIONS:
                 await build_relations(target, channel)
             word_objs = RELATIONS[target.id]["all_words"]
