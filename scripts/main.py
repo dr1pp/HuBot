@@ -1,7 +1,9 @@
 import discord
 import util
-from discord.ext.commands import Bot
 import os
+
+from discord.ext.commands import Bot
+from doppelganger import build_relations
 from markov_chain import Word
 
 #from dataclasses import dataclass, field
@@ -17,6 +19,12 @@ async def on_ready():
 async def ping(ctx):
     await ctx.send("Pong")
 
+@client.command(pass_context=True,
+                name="imp")
+async def imp(ctx, user, message_count):
+
+
+
 @client.group(pass_context=True,
               invoke_without_command=True,
               name="impersonate"
@@ -29,7 +37,7 @@ async def impersonate(ctx, user, sentences=1):
         target_id = int(user[3:-1])
         target = bot.get_user(target_id)
         if target is None:
-            await tools.send_timed(channel,
+            await util.send_timed(channel,
                                    f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`")
         print("Building message")
         if target.id not in RELATIONS:
