@@ -27,7 +27,7 @@ class Impersonate(commands.Cog):
             target_id = int(user[3:-1])
             target = self.client.get_user(target_id)
             if target is None:
-                await util.send_timed(channel,
+                await py_util.send_timed(channel,
                                        f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`")
             print("Building message")
             if target.id not in RELATIONS:
@@ -50,7 +50,7 @@ class Impersonate(commands.Cog):
                 message += ". "
             await channel.send(f"**{target}:** {message}")
         else:
-            await util.send_timed(channel, "The chat must be logged before you can generate messages")
+            await py_util.send_timed(channel, "The chat must be logged before you can generate messages")
 
 
         @commands.command(pass_context=True,
@@ -59,7 +59,7 @@ class Impersonate(commands.Cog):
             CHANNEL_HISTORY.clear()
             channel = ctx.message.channel
             await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
-            logging_message = await util.get_last_message(channel)
+            logging_message = await py_util.get_last_message(channel)
             count = 0
 
             async for message in channel.history(limit=limit):
