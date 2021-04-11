@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 
 
-
 class ImpersonateCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    def setup(self):
-        self.client.add_cog(ImpersonateCog(self.client))
+
+def setup(client):
+    client.add_cog(ImpersonateCog(client))
