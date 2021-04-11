@@ -49,6 +49,7 @@ class Impersonate(commands.Cog):
         else:
             await channel.send("The chat must be logged before you can generate messages", delete_after=5)
             await self.logchat(ctx)
+            await self.impersonate(ctx, user, sentences)
 
 
     @commands.command(name="logchat")
