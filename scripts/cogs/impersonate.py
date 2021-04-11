@@ -20,9 +20,8 @@ class Impersonate(commands.Cog):
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
-        await ctx.send(f"`{ctx.message.content}`")
         if len(CHANNEL_HISTORY) > 0:
-            target_id = int(user[3:-1])
+            target_id = [int(s) for s in user.split() if s.isdigit()]
             try:
                 target = await self.bot.fetch_user(target_id)
             except discord.errors.NotFound:
