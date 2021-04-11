@@ -21,7 +21,7 @@ class Impersonate(commands.Cog):
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
-        await channel.send(ctx, user, sentences)
+        await channel.send(f"{ctx}, {user}, {sentences}")
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
             await channel.send(f"target_id = {target_id}")

@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from discord.ext.commands import Bot
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
 @bot.event
 async def on_ready():
     me = await bot.fetch_user(210454616876253184)
-    await me.send("Online :)")
+    await me.send(f"✔️Online - {datetime.datetime.timestamp()}")
 
 
 bot.run(TOKEN)
