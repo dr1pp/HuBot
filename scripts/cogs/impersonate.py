@@ -17,10 +17,10 @@ class Impersonate(commands.Cog):
                         aliases=["imp"],
                         description="Impersonate another user based on how they talk in this server")
     async def impersonate(self, ctx, user, sentences=1):
-        await ctx.send(f"`{ctx.message.content}`")
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
+        await ctx.send(f"`{ctx.message.content}`")
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
             try:
