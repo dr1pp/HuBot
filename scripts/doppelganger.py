@@ -3,7 +3,7 @@ import asyncio
 import time
 import math
 import random
-import tools
+import util
 
 
 from discord.ext import commands
