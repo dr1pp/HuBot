@@ -23,13 +23,4 @@ async def on_ready():
     print("READY")
 
 
-@client.command()
-async def ping(ctx):
-    await ctx.send("Pong")
-
-
-
-
-
-
 client.run(TOKEN)
