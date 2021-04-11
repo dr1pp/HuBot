@@ -59,7 +59,7 @@ class Impersonate(commands.Cog):
             CHANNEL_HISTORY.clear()
             channel = ctx.message.channel
             await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
-            logging_message = await py_util.get_last_message(channel)
+            logging_message = await py_util.fetch_last_message(channel)
             count = 0
 
             async for message in channel.history(limit=limit):
