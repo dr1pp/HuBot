@@ -15,5 +15,10 @@ if __name__ == "__main__":
     for extension in initial_extensions:
         bot.load_extension(extension)
 
+@bot.event
+async def on_ready():
+    me = await bot.fetch_user(210454616876253184)
+    await me.send("Online :)")
+
 
 bot.run(TOKEN)
