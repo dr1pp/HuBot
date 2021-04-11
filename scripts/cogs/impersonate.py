@@ -25,7 +25,6 @@ class Impersonate(commands.Cog):
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
             target = await self.bot.fetch_user(target_id)
-            await channel.send(f"target = {target}")
             if target is None:
                 await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
             if target.id not in RELATIONS:
@@ -49,6 +48,7 @@ class Impersonate(commands.Cog):
             await channel.send(f"**{target}:** {message}")
         else:
             await channel.send("The chat must be logged before you can generate messages", delete_after=5)
+            await self.logchat(ctx)
 
 
     @commands.command(name="logchat")
