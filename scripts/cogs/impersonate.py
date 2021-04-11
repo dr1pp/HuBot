@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import random
-import py_util
 
 
 RELATIONS = {}
@@ -12,8 +11,8 @@ CHAT_LOGGED = False
 
 
 class Impersonate(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.command(pass_context=True,
@@ -21,14 +20,13 @@ class Impersonate(commands.Cog):
                  aliases=["test"])
     async def impersonate(self, ctx, user, sentences=1):
         channel = ctx.message.channel
-        command_msg = await py_util.fetch_last_message(channel)
+        command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
-            target = self.client.get_user(target_id)
+            target = self.bot.get_user(target_id)
             if target is None:
-                await py_util.send_timed(channel,
-                                       f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`")
+                await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
             print("Building message")
             if target.id not in RELATIONS:
                 await build_relations(target, channel)
@@ -50,7 +48,7 @@ class Impersonate(commands.Cog):
                 message += ". "
             await channel.send(f"**{target}:** {message}")
         else:
-            await py_util.send_timed(channel, "The chat must be logged before you can generate messages")
+            await channel.send("The chat must be logged before you can generate messages", delete_after=5)
 
 
         @commands.command(pass_context=True,
@@ -59,7 +57,7 @@ class Impersonate(commands.Cog):
             CHANNEL_HISTORY.clear()
             channel = ctx.message.channel
             await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
-            logging_message = await py_util.fetch_last_message(channel)
+            logging_message = await channel.fetch_message(channel.last_message_id)
             count = 0
 
             async for message in channel.history(limit=limit):
@@ -68,7 +66,7 @@ class Impersonate(commands.Cog):
                 if count % 2000 == 0:
                     await logging_message.edit(
                         content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
-            await py_util.send_timed(channel, "Logging complete :white_check_mark:")
+            await channel.send("Logging complete :white_check_mark:", delete_after=5)
             await logging_message.delete()
 
 
@@ -162,5 +160,5 @@ class Word:
 
 
 
-def setup(client):
-    client.add_cog(Impersonate(client))
+def setup(bot):
+    bot.add_cog(Impersonate(bot))
