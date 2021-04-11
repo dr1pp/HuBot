@@ -17,6 +17,7 @@ class Impersonate(commands.Cog):
                         aliases=["imp"],
                         description="Impersonate another user based on how they talk in this server")
     async def impersonate(self, ctx, user, sentences=1):
+        await ctx.send(f"`{ctx.message.content}`")
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
@@ -24,7 +25,7 @@ class Impersonate(commands.Cog):
             target_id = int(user[3:-1])
             try:
                 target = await self.bot.fetch_user(target_id)
-            except discord.ext.commands.errors.CommandInvokeError:
+            except discord.errors.NotFound:
                 await ctx.send(f"{ctx.message.author.mention} The user you tagged, {user}, could not be found", delete_after=5)
                 return
             if target is None:
