@@ -24,7 +24,11 @@ class Impersonate(commands.Cog):
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
-            target = await self.bot.fetch_user(target_id)
+            try:
+                target = await self.bot.fetch_user(target_id)
+            except discord.ext.commands.errors.CommandInvokeError:
+                await ctx.send(f"{ctx.message.author.mention} The user you tagged, {user}, could not be found")
+                return
             if target is None:
                 await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=5)
             if target.id not in RELATIONS:
