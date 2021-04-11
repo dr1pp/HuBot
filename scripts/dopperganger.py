@@ -8,10 +8,6 @@ import tools
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-TOKEN = "NzAxODQyNjUxMDExMzUwNTQ4.Xp3X7A.CHr1sWrkH5HCMl12KruiXTOhqD4"
-PREFIX = "$"
-bot = Bot(command_prefix=PREFIX)
-
 RELATIONS = {}
 
 CHANNEL_HISTORY = []
@@ -27,36 +23,7 @@ async def on_ready():
              name="impersonate",
              aliases=["test"])
 async def impersonate(ctx, user, sentences=1):
-    channel = ctx.message.channel
-    command_msg = await tools.get_last_message(channel)
-    await command_msg.delete()
-    if len(CHANNEL_HISTORY) > 0:
-        target_id = int(user[3:-1])
-        target = bot.get_user(target_id)
-        if target is None:
-            await tools.send_timed(channel, f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`")
-        print("Building message")
-        if target.id not in RELATIONS:
-            await build_relations(target, channel)
-        word_objs = RELATIONS[target.id]["all_words"]
-        generating_sentence = True
 
-        message = ""
-        generating_message = True
-        for i in range(sentences):
-            word = random.choice(RELATIONS[target.id]["starters"])
-            message += word.string
-            while generating_sentence:
-                word = word.get_next_word()
-                if word is None:
-                    generating_sentence = False
-                else:
-                    message += f" {word.string}"
-
-            message += ". "
-        await channel.send(f"**{target}:** {message}")
-    else:
-        await tools.send_timed(channel, "The chat must be logged before you can generate messages")
 
 
 async def build_relations(target, channel):
@@ -136,35 +103,3 @@ def get_word_obj(words_list, target_string):
             return word_obj
 
 
-class Word:
-    def __init__(self, string):
-        self.string = string
-        self.starts = 0
-        self.following_words = {"END": 0}
-
-    def __hash__(self):
-        return hash(self.string)
-
-    def __eq__(self, other):
-        return self.string == other.string
-
-    def __str__(self):
-        return self.string
-
-    def add_occurance(self, word):
-        if word is None:
-            self.following_words["END"] += 1
-            return
-        if word not in self.following_words:
-            self.following_words[word] = 0
-        self.following_words[word] += 1
-
-    def get_next_word(self):
-        next_word = random.choice([word for word in self.following_words for y in range(self.following_words[word])])
-        if isinstance(next_word, str):
-            return None
-        return next_word
-
-
-
-bot.run(TOKEN)
