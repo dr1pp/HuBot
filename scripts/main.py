@@ -1,18 +1,26 @@
-import discord
-from discord.ext.commands import Bot
 import os
-#from dataclasses import dataclass, field
+import datetime
 
-client = Bot(command_prefix="$")
+from discord.ext.commands import Bot
+
+
+initial_extensions = ["cogs.simple",
+                      "cogs.economy",
+                      ]
+
+
+bot = Bot(command_prefix="$")
 TOKEN = os.getenv("TOKEN")
 
-@client.event
+
+if __name__ == "__main__":
+    for extension in initial_extensions:
+        bot.load_extension(extension)
+
+@bot.event
 async def on_ready():
-    await client.change_presence(status=discord.Status.idle, activity=discord.Game("Work In Progress"))
-
-@client.command()
-async def ping(ctx):
-    await ctx.send("Pong")
+    me = await bot.fetch_user(210454616876253184)
+    await me.send(f"[ ✅ Online ] - {datetime.datetime.now()}")
 
 
-client.run(TOKEN)
+bot.run(TOKEN)
