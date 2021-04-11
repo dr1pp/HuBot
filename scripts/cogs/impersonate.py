@@ -21,7 +21,7 @@ class Impersonate(commands.Cog):
                  aliases=["test"])
     async def impersonate(self, ctx, user, sentences=1):
         channel = ctx.message.channel
-        command_msg = await
+        command_msg = await py_util.fetch_last_message(channel)
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
             target_id = int(user[3:-1])
