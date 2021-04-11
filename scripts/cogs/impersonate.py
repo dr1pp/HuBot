@@ -15,8 +15,7 @@ class Impersonate(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(pass_context=True,
-                 name="impersonate",
+    @commands.command(name="impersonate",
                  aliases=["test"])
     async def impersonate(self, ctx, user, sentences=1):
         channel = ctx.message.channel
@@ -51,8 +50,7 @@ class Impersonate(commands.Cog):
             await channel.send("The chat must be logged before you can generate messages", delete_after=5)
 
 
-    @commands.command(pass_context=True,
-                 name="logchat")
+    @commands.command(name="logchat")
     async def logchat(self, ctx, limit=50000):
         CHANNEL_HISTORY.clear()
         channel = ctx.message.channel
