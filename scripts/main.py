@@ -2,11 +2,14 @@ import discord
 import util
 import os
 
+
 from discord.ext.commands import Bot
 from doppelganger import build_relations
 from markov_chain import Word
 
+
 #from dataclasses import dataclass, field
+
 
 client = Bot(command_prefix="$")
 TOKEN = os.getenv("TOKEN")
