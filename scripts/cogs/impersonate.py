@@ -51,23 +51,23 @@ class Impersonate(commands.Cog):
             await channel.send("The chat must be logged before you can generate messages", delete_after=5)
 
 
-        @commands.command(pass_context=True,
-                     name="logchat")
-        async def logchat(ctx, limit=50000):
-            CHANNEL_HISTORY.clear()
-            channel = ctx.message.channel
-            await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
-            logging_message = await channel.fetch_message(channel.last_message_id)
-            count = 0
+    @commands.command(pass_context=True,
+                 name="logchat")
+    async def logchat(ctx, limit=50000):
+        CHANNEL_HISTORY.clear()
+        channel = ctx.message.channel
+        await channel.send(f"Logged **[0/{limit}]** messages from **#{channel.name}**")
+        logging_message = await channel.fetch_message(channel.last_message_id)
+        count = 0
 
-            async for message in channel.history(limit=limit):
-                count += 1
-                CHANNEL_HISTORY.append(message)
-                if count % 2000 == 0:
-                    await logging_message.edit(
-                        content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
-            await channel.send("Logging complete :white_check_mark:", delete_after=5)
-            await logging_message.delete()
+        async for message in channel.history(limit=limit):
+            count += 1
+            CHANNEL_HISTORY.append(message)
+            if count % 2000 == 0:
+                await logging_message.edit(
+                    content=f"Logged **[{count}/{limit}]** messages from **#{channel.name}**")
+        await channel.send("Logging complete :white_check_mark:", delete_after=5)
+        await logging_message.delete()
 
 
 async def build_relations(target, channel):
