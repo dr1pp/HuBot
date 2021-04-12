@@ -16,17 +16,11 @@ class Impersonate(commands.Cog):
     @commands.command(name="impersonate",
                         aliases=["imp"],
                         description="Impersonate another user based on how they talk in this server")
-    async def impersonate(self, ctx, user, sentences=1):
+    async def impersonate(self, ctx, target: discord.User, sentences=1):
         channel = ctx.message.channel
         command_msg = await channel.fetch_message(channel.last_message_id)
         await command_msg.delete()
         if len(CHANNEL_HISTORY) > 0:
-            target_id = int(str([c for c in user.split() if c.isdigit()]))  # TODO: Implement this into a discord util library
-            try:
-                target = await self.bot.fetch_user(target_id)
-            except discord.errors.NotFound:
-                await ctx.send(f"{ctx.message.author.mention} The user you tagged, {user}, could not be found", delete_after=5)
-                return
             if target is None:
                 await channel.send(f"{ctx.message.author.mention} Incorrect command format - usage is `$impersonate [mention user] [number of sentences]`", delete_after=10)
             if target.id not in RELATIONS:
@@ -51,7 +45,7 @@ class Impersonate(commands.Cog):
         else:
             await channel.send("The chat must be logged before you can generate messages", delete_after=5)
             await self.logchat(ctx)
-            await self.impersonate(ctx, user, sentences)
+            await self.impersonate(ctx, target, sentences)
 
 
     @commands.command(name="logchat")
