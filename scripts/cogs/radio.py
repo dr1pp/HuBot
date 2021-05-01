@@ -23,8 +23,11 @@ class RadioCog(commands.Cog):
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
             voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if not voice.is_connected():
+            if not voice:
+                await channel.connet()
+            elif not voice.is_connected():
                 await channel.connect()
+
         else:
             await ctx.send("You must be in a voice channel to use this command")
             return
