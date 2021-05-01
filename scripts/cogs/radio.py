@@ -1,7 +1,6 @@
 from discord.ext import commands
 
 
-game = game_logic.Game()
 
 class RadioCog(commands.Cog):
     def __init__(self, bot):
@@ -14,4 +13,4 @@ class RadioCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Radio(bot))
+    bot.add_cog(RadioCog(bot))
