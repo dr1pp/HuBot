@@ -24,7 +24,7 @@ class RadioCog(commands.Cog):
             channel = ctx.author.voice.channel
             voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if not voice:
-                await channel.connet()
+                await channel.connect()
             elif not voice.is_connected():
                 await channel.connect()
 
