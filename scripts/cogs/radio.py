@@ -31,7 +31,7 @@ class RadioCog(commands.Cog):
     async def random(self, ctx):
         name = await get_random_search_term()
         await ctx.send(name)
-        
+
 
 async def get_random_search_term():
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
