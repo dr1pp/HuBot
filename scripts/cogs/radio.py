@@ -1,7 +1,9 @@
 from discord.ext import commands
 
 
-class SimpleCog(commands.Cog):
+game = game_logic.Game()
+
+class RadioCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,4 +14,4 @@ class SimpleCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(SimpleCog(bot))
+    bot.add_cog(Radio(bot))

@@ -4,7 +4,7 @@ import datetime
 from discord.ext.commands import Bot
 
 # Add cogs to this list as they are merged into main branch
-initial_extensions = ["cogs.simple"]
+initial_extensions = ["cogs.radio"]
 
 
 bot = Bot(command_prefix="$")
