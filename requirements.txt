@@ -1,3 +1,5 @@
 discord.py
 PyNaCl
 spotipy
+youtube-dl2
+youtube-search

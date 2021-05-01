@@ -1,8 +1,12 @@
 import discord
 import random as rand
 import spotipy as sp
+import youtube_dl
+import os
+
 from spotipy.oauth2 import  SpotifyClientCredentials
 from discord.ext import commands
+from youtube_search import YoutubeSearch
 
 PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
@@ -15,11 +19,35 @@ class RadioCog(commands.Cog):
 
     @commands.command(name="join")
     async def join(self, ctx):
+
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
-            await channel.connect()
+            voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
+            if not voice.is_connected():
+                await channel.connect()
         else:
             await ctx.send("You must be in a voice channel to use this command")
+            return
+
+        ydl_ops = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192'
+            }]
+        }
+
+        search_term = await get_random_search_term()
+
+        url = f"https://www.youtube.com{YoutubeSearch('bladee', max_results=1).to_dict()['url_suffix']}"
+
+        with youtube_dl.YoutubeDL(ydl_ops) as ydl:
+            ydl.download([url])
+        for file in os.listdir("./"):
+            if file.endswith(".mp3"):
+                os.rename(file, "song.mp3")
+        voice.play(discord.FFmpegPCMAudio("song.mp3"))
 
 
     @commands.command(name="playlist")
