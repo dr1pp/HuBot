@@ -22,7 +22,7 @@ class RadioCog(commands.Cog):
 
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
-            voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
+            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if not voice.is_connected():
                 await channel.connect()
         else:
@@ -53,7 +53,7 @@ class RadioCog(commands.Cog):
     @commands.command(name="disconnect")
     async def disconnect(self, ctx):
         if ctx.author.voice and ctx.author.voice.channel:
-            voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
+            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if voice.is_connected():
                 await voice.channel.disconnect()
             else:
