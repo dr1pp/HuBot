@@ -59,7 +59,7 @@ class RadioCog(commands.Cog):
         if ctx.author.voice and ctx.author.voice.channel:
             voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if voice.is_connected():
-                await voice.channel.disconnect()
+                await voice.disconnect()
             else:
                 await ctx.send("The bot is not connected to a voice channel")
 
