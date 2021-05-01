@@ -50,6 +50,16 @@ class RadioCog(commands.Cog):
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
 
 
+    @commands.command(name="disconnect")
+    async def disconnect(self, ctx):
+        if ctx.author.voice and ctx.author.voice.channel:
+            voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
+            if voice.is_connected():
+                await voice.channel.disconnect()
+            else:
+                await ctx.send("The bot is not connected to a voice channel")
+
+
     @commands.command(name="playlist")
     async def playlist(self, ctx):
         await ctx.send(f"https://open.spotify.com/playlist/{PLAYLIST_ID}")
