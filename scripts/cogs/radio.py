@@ -1,6 +1,7 @@
+import discord
 from discord.ext import commands
 
-
+VOICE_ID = 698959931549810764
 
 class RadioCog(commands.Cog):
     def __init__(self, bot):
@@ -8,8 +9,13 @@ class RadioCog(commands.Cog):
 
 
     @commands.command(name="hello")
-    async def hello(self, ctx):
-        await ctx.send("hie :/")
+    async def join(self, ctx):
+        if ctx.author.voice and ctx.author.voice.channel:
+            channel = ctx.author.voice.channel
+            await channel.connect()
+        else:
+            await ctx.send("You must be in a voice channel to use this command")
+            return
 
 
 def setup(bot):
