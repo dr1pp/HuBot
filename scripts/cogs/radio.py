@@ -43,7 +43,7 @@ class RadioCog(commands.Cog):
 
         search_term = await get_random_search_term()
 
-        url = f"https://www.youtube.com{YoutubeSearch(search_term, max_results=1).to_dict()['url_suffix']}"
+        url = f"https://www.youtube.com{YoutubeSearch(search_term, max_results=1).to_dict()[0]['url_suffix']}"
 
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             ydl.download([url])
