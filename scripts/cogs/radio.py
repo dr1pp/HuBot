@@ -25,8 +25,10 @@ class RadioCog(commands.Cog):
             voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
             if not voice:
                 await channel.connect()
+
             elif not voice.is_connected():
                 await channel.connect()
+            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
 
         else:
             await ctx.send("You must be in a voice channel to use this command")
@@ -51,10 +53,12 @@ class RadioCog(commands.Cog):
         for file in os.listdir("./"):
             if file.endswith(".mp3"):
                 os.rename(file, "song.mp3")
+                print("renamed file to song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
 
 
-    @commands.command(name="disconnect")
+    @commands.command(name="disconnect",
+                      aliases=["dc", "leave"])
     async def disconnect(self, ctx):
         if ctx.author.voice and ctx.author.voice.channel:
             voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
