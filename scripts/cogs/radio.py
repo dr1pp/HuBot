@@ -8,7 +8,7 @@ class RadioCog(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(name="hello")
+    @commands.command(name="join")
     async def join(self, ctx):
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
