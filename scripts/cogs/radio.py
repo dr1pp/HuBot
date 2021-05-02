@@ -26,6 +26,8 @@ ydl_ops = {
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.first = get_random_track()
+        download_yt_as(self.first.youtube_url, "next")
 
 
     @commands.command(name="join",
@@ -33,17 +35,15 @@ class Radio(commands.Cog):
     async def join(self, ctx):
 
         async def play_track(track):
-            self.now_playing = track
-            with youtube_dl.YoutubeDL(ydl_ops) as ydl:
-                ydl.download([track.youtube_url])
+            os.rename("next.mp3", "song.mp3")
 
-            for file in os.listdir("./"):
-                if file.endswith(".mp3"):
-                    os.rename(file, "song.mp3")
+            self.now_playing = track
+
             next = get_random_track()
-            await self.channel.edit(name=track.readable_name)
+            await self.channel.edit(name=f"📻 {track.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(next), self.bot.loop))
+            download_yt_as(next.youtube_url, "next")
 
         self.channel = ctx.guild.get_channel(838175571216564264)
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
@@ -55,7 +55,6 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
-        self.first = get_random_track()
         await play_track(self.first)
 
 
@@ -83,6 +82,7 @@ class Radio(commands.Cog):
                               description=f"[Spotify Link]({self.now_playing.spotify_url})")
         embed.set_thumbnail(url=self.now_playing.album_cover_url)
         embed.set_footer(text=f"Added by: {self.now_playing.added_by.name}", icon_url=self.now_playing.added_by.image_url)
+        embed.add_field(name="Length", value=self.now_playing.duration_readable)
         await ctx.send(embed=embed)
 
 
@@ -98,6 +98,8 @@ class Track:
         self.youtube_url = f"https://www.youtube.com{url_suffix}"
         self.album_cover_url = self.info['track']['album']['images'][1]['url']
         self.added_by = SpotifyUser(spotify.user(self.info['added_by']['id']))
+        self.duration_seconds = round(int(self.info['track']['duration_ms'])/1000)
+        self.duration_readable = f"{self.duration_seconds//60}:{self.duration_seconds%60}"
 
 
 class SpotifyUser:
@@ -121,6 +123,13 @@ def get_random_track_info():
         tracks.extend(results["items"])
     return rand.choice(tracks)
 
+def download_yt_as(url, filename):
+    with youtube_dl.YoutubeDL(ydl_ops) as ydl:
+        ydl.download([url])
+
+    for file in os.listdir("./"):
+        if file.endswith(".mp3"):
+            os.rename(file, f"{filename}.mp3")
 
 def setup(bot):
     bot.add_cog(Radio(bot))
