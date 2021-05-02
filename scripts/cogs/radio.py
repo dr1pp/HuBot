@@ -26,8 +26,8 @@ ydl_ops = {
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.first = get_random_track()
-        self.first.download_as("next")
+        self.current = get_random_track()
+        self.current.download_as("next")
 
 
     @commands.command(name="join",
@@ -37,7 +37,6 @@ class Radio(commands.Cog):
         async def play_track(track):
             os.rename("next.mp3", "song.mp3")
 
-            self.now_playing = track
 
             next = get_random_track()
             await self.channel.edit(name=f"📻 {track.readable_name} 📻")
@@ -56,11 +55,11 @@ class Radio(commands.Cog):
             await self.voice.move_to(self.channel)
 
         if "next.mp3" not in os.listdir("./"):
-            self.first = get_random_track()
-            self.first.download_as("next")
+            self.current = get_random_track()
+            self.current.download_as("next")
 
 
-        await play_track(self.first)
+        await play_track(self.current)
 
     @commands.command()
 
@@ -84,12 +83,12 @@ class Radio(commands.Cog):
     @commands.command(name="nowplaying",
                       aliases=["np"])
     async def now_playing(self, ctx):
-        embed = discord.Embed(title=f"{self.now_playing.readable_name} 🎵",
-                              url=self.now_playing.youtube_url,
-                              description=f"[Spotify Link]({self.now_playing.spotify_url})")
-        embed.set_thumbnail(url=self.now_playing.album_cover_url)
-        embed.set_footer(text=f"Added by: {self.now_playing.added_by.name}", icon_url=self.now_playing.added_by.image_url)
-        embed.add_field(name="Length", value=self.now_playing.duration_readable)
+        embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
+                              url=self.current.youtube_url,
+                              description=f"[Spotify Link]({self.current.spotify_url})")
+        embed.set_thumbnail(url=self.current.album_cover_url)
+        embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
+        embed.add_field(name="Length", value=self.current.duration_readable)
         await ctx.send(embed=embed)
 
 
