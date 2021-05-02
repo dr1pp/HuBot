@@ -130,17 +130,13 @@ class SpotifyUser:
 
 
 def get_random_track():
-    track_info = get_random_track_info()
-    return Track(track_info)
-
-
-def get_random_track_info():
     tracks = []
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
     while len(tracks) < total_tracks:
         results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
         tracks.extend(results["items"])
-    return rand.choice(tracks)
+    track_data = rand.choice(tracks)
+    return Track(track_data)
 
 
 def setup(bot):
