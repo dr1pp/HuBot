@@ -15,6 +15,7 @@ PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 ydl_ops = {
         'format': 'bestaudio/best',
+        'outtmpl': 'next',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -30,9 +31,11 @@ class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.current = None
-        self.next = get_random_track()
-        self.next.download_as("next")
         print("CREATING INITIALISATION TRACK")
+        self.next = get_random_track()
+        self.next.download()
+        print("INIT TRACK CREATED")
+
 
 
     @commands.command(name="join",
@@ -41,22 +44,23 @@ class Radio(commands.Cog):
         print("JOINING VOICE CHANNEL")
 
         async def play_track(track):
-            print(os.listdir("./"))
-            os.replace("next.mp3", "song.mp3")
-            print(os.listdir("./"))
+            print("PLAYING NEXT SONG")
+            os.remove("song.mp3")
+            os.rename("next.mp3", "song.mp3")
             self.current = track
             self.next = get_random_track()
-            self.voice.stop()
+            # self.voice.stop()  # Might be unnecessary
             await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
-            self.next.download_as("next")
-            print(os.listdir("./"))
+            self.next.download()
+            print("NEXT SONG DOWNLOADED")
 
         if "next.mp3" not in os.listdir("./"):
+            print("CREATING TRACK AS NONE FOUND")
             self.next = get_random_track()
             async with ctx.channel.typing():
-                self.next.download_as("next")
+                self.next.download()
 
         self.channel = ctx.guild.get_channel(838175571216564264)
         await self.channel.edit(name="📻 DiscordFM 📻")
@@ -119,13 +123,9 @@ class Track:
         self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
 
 
-    def download_as(self, filename):
+    def download(self):
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             ydl.download([self.youtube_url])
-
-        for file in os.listdir("./"):
-            if file.endswith(".mp3") and file != "song.mp3":
-                os.rename(file, f"{filename}.mp3")
 
 
 class SpotifyUser:
