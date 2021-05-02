@@ -31,6 +31,20 @@ class Radio(commands.Cog):
     @commands.command(name="join",
                       aliases=["play", "radio"])
     async def join(self, ctx):
+
+        async def play_track(track):
+            self.now_playing = track
+            with youtube_dl.YoutubeDL(ydl_ops) as ydl:
+                ydl.download([track.youtube_url])
+
+            for file in os.listdir("./"):
+                if file.endswith(".mp3"):
+                    os.rename(file, "song.mp3")
+            next = get_random_track()
+            await self.channel.edit(name=track.readable_name)
+            self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
+                            after=lambda e: asyncio.run_coroutine_threadsafe(play_track(next), self.bot.loop))
+
         self.channel = ctx.guild.get_channel(838175571216564264)
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if not self.voice:
@@ -42,20 +56,7 @@ class Radio(commands.Cog):
             await self.voice.move_to(self.channel)
 
         self.first = get_random_track()
-        await self.play_track(self.first)
-
-
-    async def play_track(self, track):
-        self.now_playing = track
-        with youtube_dl.YoutubeDL(ydl_ops) as ydl:
-            ydl.download([track.youtube_url])
-
-        for file in os.listdir("./"):
-            if file.endswith(".mp3"):
-                os.rename(file, "song.mp3")
-        next = get_random_track()
-        await self.channel.edit(name=track.readable_name)
-        self.voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(next), self.bot.loop))
+        await play_track(self.first)
 
 
     @commands.command(name="disconnect",
@@ -81,7 +82,7 @@ class Radio(commands.Cog):
                               url=self.now_playing.youtube_url,
                               description=f"[Spotify Link]({self.now_playing.spotify_url})")
         embed.set_thumbnail(url=self.now_playing.album_cover_url)
-        embed.set_footer(text=self.now_playing.added_by.name, icon_url=self.now_playing.added_by.image_url)
+        embed.set_footer(text=f"Added by: {self.now_playing.added_by.name}", icon_url=self.now_playing.added_by.image_url)
         await ctx.send(embed=embed)
 
 
