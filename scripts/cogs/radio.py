@@ -15,7 +15,7 @@ PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 ydl_ops = {
         'format': 'bestaudio/best',
-        'outtmpl': 'next',
+        'outtmpl': 'next.%(ext)s',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
