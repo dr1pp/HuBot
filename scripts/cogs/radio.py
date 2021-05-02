@@ -39,7 +39,7 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
-        self.first = await get_random_search_term()
+        self.first = get_random_search_term()
         await self.play_track(self.first)
 
 
@@ -83,13 +83,11 @@ class Radio(commands.Cog):
 
 
 def get_random_search_term():
-    total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
-
     tracks = []
+    total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
     while len(tracks) < total_tracks:
         results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
         tracks.extend(results["items"])
-
     track_names = [f"{track['track']['album']['artists'][0]['name']} - {track['track']['name']}" for track in
                    tracks]
     return rand.choice(track_names)
