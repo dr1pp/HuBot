@@ -36,8 +36,7 @@ class Radio(commands.Cog):
 
         async def play_track(track):
             os.rename("next.mp3", "song.mp3")
-
-
+            self.current = self.next
             self.next = get_random_track()
             await self.channel.edit(name=f"📻 {track.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
@@ -86,7 +85,8 @@ class Radio(commands.Cog):
                               description=f"[Spotify Link]({self.current.spotify_url})")
         embed.set_thumbnail(url=self.current.album_cover_url)
         embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-        embed.add_field(name="Length", value=self.current.duration_readable)
+        embed.add_field(name="Length", value=self.current.duration_readable, inline=True)
+        embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})")
         await ctx.send(embed=embed)
 
 
