@@ -1,7 +1,10 @@
 import os
 import datetime
+import warnings
 
 from discord.ext.commands import Bot
+
+warnings.filterwarnings("ignore")
 
 # Add cogs to this list as they are merged into main branch
 initial_extensions = ["cogs.radio"]

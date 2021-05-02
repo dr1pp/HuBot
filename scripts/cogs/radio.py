@@ -5,6 +5,7 @@ import youtube_dl
 import os
 import asyncio
 import warnings
+import datetime
 
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
@@ -52,10 +53,11 @@ class Radio(commands.Cog):
             self.next = get_random_track()
             # self.voice.stop()  # Might be unnecessary
             await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
+            print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
             self.next.download()
-            print("NEXT SONG DOWNLOADED")
+            return
 
         if "next.mp3" not in os.listdir("./"):
             print("CREATING TRACK AS NONE FOUND")
@@ -117,7 +119,9 @@ class Track:
         self.artist = self.data['track']['album']['artists'][0]['name']
         self.readable_name = f"{self.artist} - {self.title}"
         self.spotify_url = self.data['track']['external_urls']['spotify']
+        start = datetime.datetime.now()
         self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
+        print(f"[TRACK INIT] Found YouTube data for {self.readable_name} in {datetime.datetime.now() - start}")
         self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
         self.duration = self.youtube_data['duration']
         self.album_cover_url = self.data['track']['album']['images'][1]['url']
@@ -125,8 +129,11 @@ class Track:
 
 
     def download(self):
+        start_time = datetime.datetime.now()
+        print(f"[YTDL] Downloading {self.readable_name} from {self.youtube_url}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             ydl.download([self.youtube_url])
+        print(f"[YTDL] Download of {self.readable_name} complete in {datetime.datetime.now()-start_time}!")
 
 
 class SpotifyUser:
