@@ -3,6 +3,7 @@ import random as rand
 import spotipy as sp
 import youtube_dl
 import os
+import asyncio
 
 from spotipy.oauth2 import  SpotifyClientCredentials
 from discord.ext import commands
@@ -38,8 +39,8 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
-        first = await get_random_search_term()
-        await self.play_track(first)
+        self.first = await get_random_search_term()
+        await self.play_track(self.first)
 
 
     async def play_track(self, track):
@@ -51,9 +52,9 @@ class Radio(commands.Cog):
         for file in os.listdir("./"):
             if file.endswith(".mp3"):
                 os.rename(file, "song.mp3")
-        next = await get_random_search_term()
-        self.voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: await self.play_track(next))
-        await self.channel.edit(name=f"{track}")
+        next = get_random_search_term()
+        self.voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(next), self.bot.loop))
+        await self.channel.edit(name=track)
 
 
     @commands.command(name="disconnect",
@@ -81,7 +82,7 @@ class Radio(commands.Cog):
 
 
 
-async def get_random_search_term():
+def get_random_search_term():
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
 
     tracks = []
