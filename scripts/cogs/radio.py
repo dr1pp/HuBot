@@ -90,25 +90,24 @@ class Radio(commands.Cog):
                               colour=discord.Colour(0x2e7158))
         embed.set_thumbnail(url=self.current.album_cover_url)
         embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-        embed.add_field(name="Length", value=self.current.duration_readable, inline=True)                               # TODO: Pull duration from mp3 file rather than spotify
+        embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
         embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})")                  # TODO: Add time remaining to embed
         await ctx.send(embed=embed)
 
 
 class Track:
 
-    def __init__(self, track_info):
-        self.info = track_info
-        self.title = self.info['track']['name']
-        self.artist = self.info['track']['album']['artists'][0]['name']
+    def __init__(self, track_data):
+        self.data = track_data
+        self.title = self.data['track']['name']
+        self.artist = self.data['track']['album']['artists'][0]['name']
         self.readable_name = f"{self.artist} - {self.title}"
-        self.spotify_url = self.info['track']['external_urls']['spotify']
-        url_suffix = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]['url_suffix']
-        self.youtube_url = f"https://www.youtube.com{url_suffix}"
-        self.album_cover_url = self.info['track']['album']['images'][1]['url']
-        self.added_by = SpotifyUser(spotify.user(self.info['added_by']['id']))
-        self.duration_seconds = round(int(self.info['track']['duration_ms'])/1000)
-        self.duration_readable = f"{self.duration_seconds//60}:{self.duration_seconds%60}"
+        self.spotify_url = self.data['track']['external_urls']['spotify']
+        self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
+        self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
+        self.duration = self.youtube_data['duration']
+        self.album_cover_url = self.data['track']['album']['images'][1]['url']
+        self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
 
 
     def download_as(self, filename):
