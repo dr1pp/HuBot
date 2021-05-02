@@ -40,9 +40,9 @@ class Radio(commands.Cog):
 
         async def play_track(track):
             os.rename("next.mp3", "song.mp3")
-            self.current = self.next
+            self.current = track
             self.next = get_random_track()
-            await self.channel.edit(name=f"📻 {track.readable_name} 📻")
+            await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
             self.next.download_as("next")
@@ -86,11 +86,12 @@ class Radio(commands.Cog):
     async def now_playing(self, ctx):
         embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                               url=self.current.youtube_url,
-                              description=f"[Spotify Link]({self.current.spotify_url})")
+                              description=f"[Spotify Link]({self.current.spotify_url})",
+                              colour=discord.Colour(0x2e7158))
         embed.set_thumbnail(url=self.current.album_cover_url)
         embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-        embed.add_field(name="Length", value=self.current.duration_readable, inline=True)
-        embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})")
+        embed.add_field(name="Length", value=self.current.duration_readable, inline=True)                               # TODO: Pull duration from mp3 file rather than spotify
+        embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})")                  # TODO: Add time remaining to embed
         await ctx.send(embed=embed)
 
 
