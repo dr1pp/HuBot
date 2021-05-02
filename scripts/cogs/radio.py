@@ -27,7 +27,7 @@ class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.first = get_random_track()
-        download_yt_as(self.first.youtube_url, "next")
+        self.first.download_as("next")
 
 
     @commands.command(name="join",
@@ -43,7 +43,7 @@ class Radio(commands.Cog):
             await self.channel.edit(name=f"📻 {track.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(next), self.bot.loop))
-            download_yt_as(next.youtube_url, "next")
+            next.download_as("next")
 
         self.channel = ctx.guild.get_channel(838175571216564264)
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
@@ -102,6 +102,15 @@ class Track:
         self.duration_readable = f"{self.duration_seconds//60}:{self.duration_seconds%60}"
 
 
+    def download_as(self, filename):
+        with youtube_dl.YoutubeDL(ydl_ops) as ydl:
+            ydl.download([self.youtube_url])
+
+        for file in os.listdir("./"):
+            if file.endswith(".mp3"):
+                os.rename(file, f"{filename}.mp3")
+
+
 class SpotifyUser:
 
     def __init__(self, user_info):
@@ -123,13 +132,6 @@ def get_random_track_info():
         tracks.extend(results["items"])
     return rand.choice(tracks)
 
-def download_yt_as(url, filename):
-    with youtube_dl.YoutubeDL(ydl_ops) as ydl:
-        ydl.download([url])
-
-    for file in os.listdir("./"):
-        if file.endswith(".mp3"):
-            os.rename(file, f"{filename}.mp3")
 
 def setup(bot):
     bot.add_cog(Radio(bot))
