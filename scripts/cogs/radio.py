@@ -52,9 +52,9 @@ class Radio(commands.Cog):
             os.rename("next.mp3", "song.mp3")
             self.current = track
             self.next = get_random_track()
-            print(f"[PLAY_TRACK] Next track found, updating channel name")
+            # print(f"[PLAY_TRACK] Next track found, updating channel name")
             # self.voice.stop()  # Might be unnecessary
-            await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
+            # await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
             print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
