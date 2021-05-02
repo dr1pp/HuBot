@@ -48,9 +48,11 @@ class Radio(commands.Cog):
             print("PLAYING NEXT SONG")
             if "song.mp3" in os.listdir("./"):
                 os.remove("song.mp3")
+                print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
             os.rename("next.mp3", "song.mp3")
             self.current = track
             self.next = get_random_track()
+            print(f"[PLAY_TRACK] Next track found, updating channel name")
             # self.voice.stop()  # Might be unnecessary
             await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
             print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
@@ -109,6 +111,7 @@ class Radio(commands.Cog):
         embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
         embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)    # TODO: Add time remaining to embed
         await ctx.send(embed=embed)
+
 
 
 class Track:
