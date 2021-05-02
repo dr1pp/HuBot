@@ -45,7 +45,8 @@ class Radio(commands.Cog):
 
         async def play_track(track):
             print("PLAYING NEXT SONG")
-            os.remove("song.mp3")
+            if "song.mp3" in os.listdir("./"):
+                os.remove("song.mp3")
             os.rename("next.mp3", "song.mp3")
             self.current = track
             self.next = get_random_track()
