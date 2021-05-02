@@ -38,11 +38,11 @@ class Radio(commands.Cog):
             os.rename("next.mp3", "song.mp3")
 
 
-            next = get_random_track()
+            self.next = get_random_track()
             await self.channel.edit(name=f"📻 {track.readable_name} 📻")
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
-                            after=lambda e: asyncio.run_coroutine_threadsafe(play_track(next), self.bot.loop))
-            next.download_as("next")
+                            after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
+            self.next.download_as("next")
 
         self.channel = ctx.guild.get_channel(838175571216564264)
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
@@ -60,8 +60,6 @@ class Radio(commands.Cog):
 
 
         await play_track(self.current)
-
-    @commands.command()
 
 
     @commands.command(name="disconnect",
