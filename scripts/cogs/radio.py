@@ -12,49 +12,48 @@ PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
-class RadioCog(commands.Cog):
+ydl_ops = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192'
+        }]
+    }
+
+class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
 
     @commands.command(name="join")
     async def join(self, ctx):
+        self.channel = ctx.guild.get_channel(838175571216564264)
+        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+        if not self.voice:
+            self.voice = await self.channel.connect()
 
-        if ctx.author.voice and ctx.author.voice.channel:
-            channel = ctx.author.voice.channel
-            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if not voice:
-                await channel.connect()
-
-            elif not voice.is_connected():
-                await channel.connect()
-            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-
+        elif not self.voice.is_connected():
+            await self.channel.connect()
         else:
-            await ctx.send("You must be in a voice channel to use this command")
-            return
+            await self.voice.move_to(self.channel)
 
-        ydl_ops = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192'
-            }]
-        }
+        first = await get_random_search_term()
+        await self.play_track(first)
 
-        search_term = await get_random_search_term()
 
-        url = f"https://www.youtube.com{YoutubeSearch(search_term, max_results=1).to_dict()[0]['url_suffix']}"
-        await ctx.send(f"Now Playing: {search_term}\n{url}")
+    async def play_track(self, track):
+        url = f"https://www.youtube.com{YoutubeSearch(track, max_results=1).to_dict()[0]['url_suffix']}"
 
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             ydl.download([url])
+
         for file in os.listdir("./"):
             if file.endswith(".mp3"):
                 os.rename(file, "song.mp3")
-                print("renamed file to song.mp3")
-        voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        next = await get_random_search_term()
+        self.voice.play(discord.FFmpegPCMAudio("song.mp3"), after=lambda e: await self.play_track(next))
+        await self.channel.edit(name=f"{track}")
 
 
     @commands.command(name="disconnect",
@@ -79,6 +78,9 @@ class RadioCog(commands.Cog):
         await ctx.send(name)
 
 
+
+
+
 async def get_random_search_term():
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
 
@@ -93,4 +95,4 @@ async def get_random_search_term():
 
 
 def setup(bot):
-    bot.add_cog(RadioCog(bot))
+    bot.add_cog(Radio(bot))
