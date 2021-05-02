@@ -55,7 +55,14 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
+        if "next.mp3" not in os.listdir("./"):
+            self.first = get_random_track()
+            self.first.download_as("next")
+
+
         await play_track(self.first)
+
+    @commands.command()
 
 
     @commands.command(name="disconnect",
