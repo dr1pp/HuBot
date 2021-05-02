@@ -38,8 +38,10 @@ class Radio(commands.Cog):
     @commands.command(name="join",
                       aliases=["play", "radio"])
     async def join(self, ctx):
+        print("JOINING VOICE CHANNEL")
 
         async def play_track(track):
+            print(os.listdir("./"))
             os.replace("next.mp3", "song.mp3")
             print(os.listdir("./"))
             self.current = track
@@ -49,6 +51,7 @@ class Radio(commands.Cog):
             self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
             self.next.download_as("next")
+            print(os.listdir("./"))
 
         if "next.mp3" not in os.listdir("./"):
             self.next = get_random_track()
@@ -121,7 +124,7 @@ class Track:
             ydl.download([self.youtube_url])
 
         for file in os.listdir("./"):
-            if file.endswith(".mp3"):
+            if file.endswith(".mp3") and file != "song.mp3":
                 os.rename(file, f"{filename}.mp3")
 
 
