@@ -62,6 +62,8 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
+        self.voice.stop()
+
         await play_track(self.next)
 
 
