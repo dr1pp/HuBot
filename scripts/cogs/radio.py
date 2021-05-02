@@ -96,7 +96,7 @@ class Track:
         url_suffix = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]['url_suffix']
         self.youtube_url = f"https://www.youtube.com{url_suffix}"
         self.album_cover_url = self.info['track']['album']['images'][1]['url']
-        self.added_by = SpotifyUser(self.info['added_by']['id'])
+        self.added_by = SpotifyUser(spotify.user(self.info['added_by']['id']))
 
 
 class SpotifyUser:
