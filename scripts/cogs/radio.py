@@ -4,14 +4,14 @@ import spotipy as sp
 import youtube_dl
 import os
 import asyncio
+import warnings
 
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
-PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
-spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
+PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 ydl_ops = {
         'format': 'bestaudio/best',
@@ -22,12 +22,16 @@ ydl_ops = {
         }]
     }
 
+spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
+
+warnings.filterwarnings("ignore")
 
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.current = get_random_track()
-        self.current.download_as("next")
+        self.current = None
+        self.next = get_random_track()
+        self.next.download_as("next")
 
 
     @commands.command(name="join",
@@ -43,6 +47,11 @@ class Radio(commands.Cog):
                             after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
             self.next.download_as("next")
 
+        if "next.mp3" not in os.listdir("./"):
+            self.next = get_random_track()
+            async with ctx.channel.typing():
+                self.next.download_as("next")
+
         self.channel = ctx.guild.get_channel(838175571216564264)
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if not self.voice:
@@ -53,12 +62,7 @@ class Radio(commands.Cog):
         else:
             await self.voice.move_to(self.channel)
 
-        if "next.mp3" not in os.listdir("./"):
-            self.current = get_random_track()
-            self.current.download_as("next")
-
-
-        await play_track(self.current)
+        await play_track(self.next)
 
 
     @commands.command(name="disconnect",
