@@ -44,23 +44,6 @@ class Radio(commands.Cog):
     async def join(self, ctx):
         print("JOINING VOICE CHANNEL")
 
-        async def play_track(track):
-            print("PLAYING NEXT SONG")
-            if "song.mp3" in os.listdir("./"):
-                os.remove("song.mp3")
-                print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
-            os.rename("next.mp3", "song.mp3")
-            self.current = track
-            self.next = get_random_track()
-            # print(f"[PLAY_TRACK] Next track found, updating channel name")
-            # self.voice.stop()  # Might be unnecessary
-            # await self.channel.edit(name=f"📻 {self.current.readable_name} 📻")
-            print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
-            self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
-                            after=lambda e: asyncio.run_coroutine_threadsafe(play_track(self.next), self.bot.loop))
-            self.next.download()
-            return
-
         if "next.mp3" not in os.listdir("./"):
             print("CREATING TRACK AS NONE FOUND")
             self.next = get_random_track()
@@ -80,7 +63,31 @@ class Radio(commands.Cog):
 
         self.voice.stop()
 
-        await play_track(self.next)
+        await self.play_track(self.next)
+
+
+    async def play_track(self, track):
+        print("PLAYING NEXT SONG")
+        if "song.mp3" in os.listdir("./"):
+            os.remove("song.mp3")
+            print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
+        os.rename("next.mp3", "song.mp3")
+        self.current = track
+        self.next = get_random_track()
+        print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
+        self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(self.next), self.bot.loop))
+        self.next.download()
+        return
+
+
+    @commands.command(name="skip",
+                      aliases=["s"])
+    async def skip(self, ctx):
+        self.voice.stop()
+        await self.play_track(self.next)
+
+
 
 
     @commands.command(name="disconnect",
