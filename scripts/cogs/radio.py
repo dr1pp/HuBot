@@ -72,7 +72,9 @@ class Radio(commands.Cog):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
         os.rename("next.mp3", "song.mp3")
+        print("[PLAY_TRACK] Renamed file")
         self.current = track
+        print("[PLAY_TRACK] Current track set")
         self.next = get_random_track()
         print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
@@ -82,7 +84,7 @@ class Radio(commands.Cog):
 
 
     @commands.command(name="skip",
-                      aliases=["s"])
+                      aliases=["s", "kip"])
     async def skip(self, ctx):
         self.voice.stop()
         await self.play_track(self.next)
