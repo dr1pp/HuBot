@@ -1,1 +1,5 @@
 discord.py
+PyNaCl
+spotipy
+youtube-dl==2021.4.26
+youtube-search

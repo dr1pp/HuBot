@@ -1,5 +1,6 @@
 import os
 import datetime
+import warnings
 
 import warnings
 
@@ -10,9 +11,14 @@ from sql import Database
 warnings.filterwarnings("ignore")
 
 
+
+warnings.filterwarnings("ignore")
+=======
 # Add cogs to this list as they are merged into main branch
 initial_extensions = ["cogs.economy",
-                      "cogs.games"]
+                      "cogs.games",
+                      "cogs.radio"]
+
 
 
 bot = Bot(command_prefix="$")
@@ -32,7 +38,8 @@ if __name__ == "__main__":
 # Messages me on Discord when the bot is ready (faster than checking logs or typing a command)
 @bot.event
 async def on_ready():
-    print("READY")
+    await me.send(f"✅ Online - {datetime.datetime.now()}")
+    print("===== [READY] =====")
     bot.me = await bot.fetch_user(210454616876253184)
     print(bot.me)
 
