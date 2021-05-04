@@ -114,7 +114,7 @@ class Radio(commands.Cog):
         embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                               url=self.current.youtube_url,
                               description=f"[Spotify Link]({self.current.spotify_url})",
-                              colour=discord.Colour(0x2e7158))
+                              colour=discord.Colour(0x1DB954))
         embed.set_thumbnail(url=self.current.album_cover_url)
         embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
         embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
