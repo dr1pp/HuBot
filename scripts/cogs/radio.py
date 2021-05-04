@@ -96,9 +96,9 @@ class Radio(commands.Cog):
                       aliases=["dc", "leave"])
     async def disconnect(self, ctx):
         if ctx.author.voice and ctx.author.voice.channel:
-            voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-            if voice.is_connected():
-                await voice.disconnect()
+            if self.voice.is_connected():
+                self.voice.stop()
+                await self.voice.disconnect()
             else:
                 await ctx.send("The bot is not connected to a voice channel")
 
