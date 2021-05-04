@@ -1,5 +1,6 @@
 import os
 import datetime
+
 import warnings
 
 from discord.ext.commands import Bot
@@ -14,7 +15,7 @@ initial_extensions = ["cogs.economy",
                       "cogs.games"]
 
 
-bot = Bot(command_prefix="t$")
+bot = Bot(command_prefix="$")
 bot.db = Database()
 bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     id INT NOT NULL PRIMARY KEY,
@@ -37,4 +38,5 @@ async def on_ready():
 
 
 TOKEN = os.getenv("TOKEN")
+
 bot.run(TOKEN)
