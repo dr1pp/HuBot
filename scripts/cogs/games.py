@@ -65,8 +65,10 @@ class Games(commands.Cog):
         self.c4_emotes = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣']
 
 
-    @commands.group(name="slots")
-    async def slots(self, ctx, amount=None):
+    @commands.group(name="slots",
+                    aliases=["slot", "lots", "lot"],
+                    brief="Slot machine minigame")
+    async def slots(self, ctx, amount=None):  # TODO : Refactor to use embed and be repeatable
         if amount is None:
 
             def check(m):
@@ -234,7 +236,7 @@ class Games(commands.Cog):
             won = False
             p1_turn = True
             while p1_turn:
-                reaction, user = await self.bot.wait_for('reaction_add')
+                reaction, user = await self.bot.wait_for('reaction_add')  # TODO : Add forfeit option using red x reaction
                 if user == players[int(turn)] and reaction.emoji in self.c4_emotes:
                     column = int(reaction.emoji[0]) - 1
                     not_full, turn, board = place_piece(board, turn, column)
