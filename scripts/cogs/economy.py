@@ -9,7 +9,8 @@ class Economy(commands.Cog):
         self.bot = bot
         self.manager = EconomyManager(self.bot)
 
-    @commands.command()
+    @commands.command("balance",
+                      aliases=["bank", "money", "cash"])
     async def balance(self, ctx):
         user = ctx.message.author
         self.manager.check_user_exists(user)
