@@ -19,7 +19,5 @@ class Utility(commands.Cog):
         await ctx.send(f":recycle:  Purged **{len(deleted)}** bot related message(s)", delete_after=10)
 
 
-
-
 def setup(bot):
     bot.add_cog(Utility(bot))
