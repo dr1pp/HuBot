@@ -61,7 +61,7 @@ class Games(commands.Cog):
                                 "emoji": ":seven:"
             }
 ]
-        self.c4_pieces = [":large_blue_circle:", ":red_circle:"]
+        self.c4_pieces = [":yellow_circle:", ":red_circle:"]
         self.c4_emotes = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣']
 
 

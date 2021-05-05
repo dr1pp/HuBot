@@ -26,6 +26,21 @@ class Economy(commands.Cog):
             await ctx.reply(f"You cannot use this command")
 
 
+    @commands.command()
+    async def gift(self, ctx, target: discord.User, amount: int):
+        gifter = ctx.message.author
+        if amount >= 1:
+            if self.manager.can_afford(target, amount):
+                self.manager.give_money(target, amount)
+                self.manager.give_money(gifter, -amount)
+                await ctx.reply(
+                    f":money_with_wings: **฿{amount}** sent to **{target.mention}**")
+            else:
+                await ctx.reply(f":no_entry_sign: Your balance is too low to send **฿{amount}**")
+        else:
+            await ctx.reply("You must gift at least **฿1**")
+
+
 
 class EconomyManager:
     def __init__(self, bot):
@@ -40,33 +55,16 @@ class EconomyManager:
         return balance
 
 
-    def get_id(self, user):
-        if isinstance(user, discord.Member):
-            print("user")
-            id = user.id
-        elif isinstance(user, int):
-            print("int")
-            id = user
-        elif isinstance(user, str):
-            print("string")
-            id = int(user)
-        else:
-            print(type(user))
-            id = None
-        return id
-
-
-    def enlist_user(self, id: int):
-        self.db.execute("INSERT INTO UserData VALUES (?, 100)", (id,))
-        print("enlisted", id)
+    def enlist_user(self, user: discord.User):
+        self.db.execute("INSERT INTO UserData VALUES (?, 100)", (user.id,))
+        print("enlisted", user.id)
 
 
     def check_user_exists(self, user: discord.User):
-        id = self.get_id(user)
-        results = self.db.get("SELECT * FROM UserData WHERE id = ?", (id,))
+        results = self.db.get("SELECT * FROM UserData WHERE id = ?", (user.id,))
         if len(results) == 0:
-            self.enlist_user(id)
-        return id
+            self.enlist_user(user)
+        return user.id
 
 
     def give_money(self, user: discord.User, amount: int):
