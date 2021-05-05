@@ -11,56 +11,6 @@ class Games(commands.Cog):
         self.bot = bot
         self.economy = self.bot.get_cog("Economy")
         self.econ_manager = self.economy.manager
-        self.slots_mults = [
-                            {
-                                "mult": 0,
-                                "lower": 0,
-                                "upper": 7000,
-                                "emoji": ":no_entry_sign:"
-                            },
-                            {
-                                "mult": 1,
-                                "lower": 7000,
-                                "upper": 8000,
-                                "emoji": ":white_check_mark:"
-                            },
-                            {
-                                "mult": 2,
-                                "lower": 8000,
-                                "upper": 8700,
-                                "emoji": ":heavy_dollar_sign:"
-                            },
-                            {
-                                "mult": 5,
-                                "lower": 8700,
-                                "upper": 9300,
-                                "emoji": ":game_die:"
-                            },
-                            {
-                                "mult": 10,
-                                "lower": 9300,
-                                "upper": 9700,
-                                "emoji": ":bell:"
-                            },
-                            {
-                                "mult": 20,
-                                "lower": 9700,
-                                "upper": 9900,
-                                "emoji": ":cherries:"
-                            },
-                            {
-                                "mult": 50,
-                                "lower": 9900,
-                                "upper": 9999,
-                                "emoji": ":lemon:"
-                            },
-                            {
-                                "mult": 100,
-                                "lower": 9999,
-                                "upper": 10001,
-                                "emoji": ":seven:"
-            }
-]
         self.c4_pieces = [":yellow_circle:", ":red_circle:"]
         self.c4_emotes = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣']
 
@@ -68,7 +18,7 @@ class Games(commands.Cog):
     @commands.group(name="slots",
                     aliases=["slot", "lots", "lot"],
                     brief="Slot machine minigame")
-    async def slots(self, ctx, amount=None):  # TODO : Refactor to use embed and be repeatable
+    async def slots(self, ctx, amount=None):  # TODO : Refactor to use embed and be repeatable with current balance
         if amount is None:
 
             def check(m):
@@ -107,37 +57,20 @@ class Games(commands.Cog):
     @slots.command("play")
     async def play(self, ctx, amount):
         user = ctx.message.author
+        print(amount)
         if amount == "all":
             amount = self.econ_manager.balance(user)
         elif amount == "half":
             amount = int(self.econ_manager.balance(user) / 2)
         else:
             amount = int(amount)
-        if self.econ_manager.can_afford(user, amount):
-            self.econ_manager.give_money(user, -amount)
-            chance = random.randint(0, 10000)
-            for m in self.slots_mults:
-                if m["lower"] <= chance < m["upper"]:
-                    winnings = amount * m["mult"]
-                    self.econ_manager.give_money(user, winnings)
-                    await ctx.reply(
-                        f"| {m['emoji']} | {m['emoji']} | {m['emoji']} | `{chance}`\nYou got a **{m['mult']}x** multiplier and won **฿{winnings}**")
-                    return
-        else:
-            await ctx.reply(f"{user.mention} You do not have enough **e-฿UX** to bet **฿{amount}**")
+        slots = SlotMachine(ctx, self.bot, amount)
+        await slots.play()
 
 
     @slots.command("chances")
     async def chances(self, ctx):
-        embed = discord.Embed(title="__Slot Machine Chances__")
-        chance_names = ""
-        chance_ranges = ""
-        for chance in self.slots_mults:
-            chance_names += f"{chance['emoji']} **{chance['mult']}x**\n"
-            chance_ranges += f":game_die: **{chance['lower']} - {chance['upper']}**\n"
-        embed.add_field(name="__Multiplier__", value=chance_names)
-        embed.add_field(name="__Range__", value=chance_ranges)
-        await ctx.reply(embed=embed)
+        pass
 
 
     @commands.command(name="connect4",
@@ -258,6 +191,121 @@ class Games(commands.Cog):
             else:
                 await message.edit(content=build_board_msg(board))
 
+
+class SlotMachine:
+    def __init__(self, ctx, bot, bet: int):
+        self.ctx = ctx
+        self.bot = bot
+        self.bet = bet
+        self.user = self.ctx.message.author
+        self.econ = self.bot.get_cog("Economy").manager
+        self.values = {":watermelon:": 1,
+                      ":apple:": 1,
+                      ":tangerine:": 1.5,
+                      ":lemon:": 2,
+                      ":grapes:": 2.5,
+                      ":cherries:": 3,
+                      ":hearts:": 4,
+                      ":four_leaf_clover:": 5,
+                      ":euro:": 6,
+                      ":dollar:": 7,
+                      ":pound:": 8,
+                      ":bell:": 10,
+                      ":coin:": 20,
+                      ":seven:": 50
+                      }
+        self.reactions = ["🔁", "❌"]
+        self.wheel = []
+        self.build_wheel()
+
+
+    def build_wheel(self):
+        for symbol in self.values.keys():
+            symbols_list = [symbol] * int(10000 / (self.values[symbol]**2))
+            self.wheel.extend(symbols_list)
+
+
+    async def play(self):
+        if self.econ.can_afford(self.user, self.bet):
+            finished = False
+            self.econ.give_money(self.user, -self.bet)
+            grid = self.generate_grid()
+            won, mult = self.check_win(grid)
+            winnings = int(self.bet * mult)
+            slot_message = await self.ctx.reply(embed = self.build_embed(grid, won, mult))
+            self.econ.give_money(self.user, winnings)
+            for reaction in self.reactions:
+                await slot_message.add_reaction(reaction)
+            while not finished:
+                try:
+                    reaction, user = await self.bot.wait_for('reaction_add', timeout=30)
+                    if user == self.user:
+                        if reaction.emoji == "🔁":
+                            await reaction.remove(user)
+                            if self.econ.can_afford(self.user, self.bet):
+                                await asyncio.sleep(4)
+                                self.econ.give_money(self.user, -self.bet)
+                                grid = self.generate_grid()
+                                won, mult = self.check_win(grid)
+                                winnings = int(self.bet*mult)
+                                self.econ.give_money(self.user, winnings)
+                                await slot_message.edit(embed=self.build_embed(grid, won, mult))
+                            else:
+                                broke_msg = await slot_message.reply(f"{self.user.mention} You cannot afford to put **฿{self.bet}** into this machine")
+                                await asyncio.sleep(5)
+                                await broke_msg.delete()
+                                await slot_message.delete()
+                                finished = True
+                        elif reaction.emoji == "❌":
+                            finished = True
+                            await slot_message.delete()
+                        else:
+                            await reaction.remove(user)
+                    else:
+                        if user != self.bot.user:
+                            await reaction.remove(user)
+                except asyncio.TimeoutError:
+                    finished = True
+                    await slot_message.delete()
+        else:
+            await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")
+
+
+
+    def check_win(self, grid):
+        for symbol in self.values.keys():
+            num = grid[1].count(symbol)
+            if num > 1:
+                return True, num / 2
+        return False, 0
+
+
+    def generate_grid(self):
+        grid = []
+        for row in range(3):
+            row = []
+            for col in range(3):
+                symbol = random.choice(self.wheel)
+                row.extend([symbol])
+            grid.append(row)
+        return grid
+
+
+    def build_embed(self, g, won, mult=0):
+        embed = discord.Embed(title=f"Slot Machine - **฿{self.bet}**", description=f"Balance: **฿{self.econ.balance(self.user)}**")
+        embed.add_field(name=":black_large_square::one:", value=f":blue_square: {g[0][0]}\n:arrow_right: {g[1][0]}\n:blue_square: {g[2][0]}")
+        embed.add_field(name=":two:", value=f"{g[0][1]}\n{g[1][1]}\n{g[2][1]}")
+        embed.add_field(name=":three::black_large_square:", value=f"{g[0][2]} :blue_square:\n{g[1][2]} :arrow_left:\n{g[2][2]} :blue_square:")
+        if won is not None:
+            if won:
+                if mult == 1.0:
+                    embed.add_field(name="__Results__",
+                                    value=f"**{mult}x** multiplier\nBroke even")
+                else:
+                    embed.add_field(name="__Results__", value=f"**{mult}x** multiplier\nWon **฿{int(self.bet*mult)}**")
+            else:
+                embed.add_field(name="__Results__", value=f"No match\nLost **฿{int(self.bet)}**")
+        return embed
 
 def setup(bot):
     bot.add_cog(Games(bot))
