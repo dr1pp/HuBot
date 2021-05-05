@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore")
 
 # Add cogs to this list as they are merged into main branch
-initial_extensions = ["cogs.util"
+initial_extensions = ["cogs.utility"
                       "cogs.economy",
                       "cogs.games",
                       "cogs.radio"]
