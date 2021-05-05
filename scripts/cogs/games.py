@@ -139,8 +139,11 @@ class Games(commands.Cog):
 
 
     @commands.command(name="connect4",
-                    aliases=["c4"])
-    async def connect4(self, ctx, target: discord.User, wager: int):
+                      aliases=["c4"])
+    async def connect4(self, ctx, target: discord.User, wager: int = 0):
+
+        turn = True
+
 
         def place_piece(board, turn, col):
             for row in reversed(board):
@@ -189,57 +192,69 @@ class Games(commands.Cog):
             return all(x == items[0] for x in items)
 
 
-        def build_board_msg(board):
-            board_msg = f"**{self.c4_pieces[int(turn)]} {players[int(turn)].nick.split(' ')[0]}'s turn**" \
-                        f":dollar: The pot contains **{wager*2}**"
-            for line in board:
-                for column in line:
-                    board_msg += column
-                board_msg += "\n"
-            board_msg += "\n"
+        def build_board_msg(board, won=False):
+            if won:
+                board_msg = f"**CONNECT 4:** `{players[0]} vs. {players[1]}`\n" \
+                    f"**{self.c4_pieces[int(not turn)]} {players[int(not turn)]} won**\n" \
+                    f":trophy: They will be recieving the **฿{wager * 2}** pot\n\n"
+            else:
+                board_msg = f"**CONNECT 4:** `{players[0]} vs. {players[1]}`\n" \
+                    f"**{self.c4_pieces[int(turn)]} {players[int(turn)]}'s turn**\n" \
+                    f":dollar: The pot contains **฿{wager * 2}**\n\n"
+            board_msg += ":blue_square:"
             for emote in self.c4_emotes:
                 board_msg += emote
-
-        if ctx.invoked_subcommand is None:
-            author = ctx.message.author
-            if not self.econ_manager.can_afford(target, wager) or not self.econ_manager.can_afford(author, wager):
-                ctx.reply(f"Either one or both of the players do not have enough money to wager **฿{wager}**")
-                return
-
-            board = [[":black_circle:" for x in range(7)] for y in range(6)]
-            players = [target, author]
-            finished = False
-            board_text = f"**{self.c4_pieces[1]} {author.mention}'s turn**\n\n"
-
-            message = await ctx.reply(board_text)
+            board_msg += ":blue_square:\n"
+            for line in board:
+                board_msg += ":blue_square:"
+                for column in line:
+                    board_msg += column
+                board_msg += ":blue_square:\n"
+            board_msg += ":blue_square:"
             for emote in self.c4_emotes:
-                await message.add_reaction(message, emote)
-            await asyncio.sleep(1)
-            turn = True
-            while not finished:
-                won = False
-                p1_turn = True
-                while p1_turn:
-                    reaction, user = await self.bot.wait_for('reaction_add')
-                    if user == players[int(turn)] and reaction.emoji in self.c4_emotes:
-                        column = int(reaction.emoji[0]) - 1
-                        not_full, turn, board = place_piece(board, turn, column)
-                        if not_full:
-                            p1_turn = False
-                        await reaction.remove(user)
-                    else:
-                        await reaction.remove(user)
+                board_msg += emote
+            board_msg += ":blue_square:"
+            return board_msg
 
-                won = check_win(board)
-                if won:
-                    # await message.delete()
-                    finished = True
-                    await ctx.send(
-                        f":trophy: **{players[int(not turn)].nick.split(' ')[0]}** won **{wager*2}**\n"
-                        f"Connect 4 vs. **{players[int(turn)]}**"
-                        f"")
+
+        author = ctx.message.author
+        if not self.econ_manager.can_afford(target, wager) or not self.econ_manager.can_afford(author, wager):
+            ctx.reply(f"Either one or both of the players do not have enough money to wager **฿{wager}**")
+            return
+
+        board = [[":black_circle:" for x in range(7)] for y in range(6)]
+        players = [target, author]
+        finished = False
+        board_text = build_board_msg(board)
+        message = await ctx.reply(board_text)
+        for emote in self.c4_emotes:
+            await message.add_reaction(emote)
+        await asyncio.sleep(1)
+        while not finished:
+            won = False
+            p1_turn = True
+            while p1_turn:
+                reaction, user = await self.bot.wait_for('reaction_add')
+                if user == players[int(turn)] and reaction.emoji in self.c4_emotes:
+                    column = int(reaction.emoji[0]) - 1
+                    not_full, turn, board = place_piece(board, turn, column)
+                    if not_full:
+                        p1_turn = False
+                    await reaction.remove(user)
                 else:
-                    await message.edit(build_board_msg(board))
+                    await reaction.remove(user)
+
+            won = check_win(board)
+            if won:
+                winner = players[int(not turn)]
+                loser = players[int(turn)]
+                await message.edit(content=build_board_msg(board, True))
+                await message.clear_reactions()
+                finished = True
+                self.econ_manager.give_money(winner, wager * 2)
+                self.econ_manager.give_money(loser, -wager)
+            else:
+                await message.edit(content=build_board_msg(board))
 
 
 def setup(bot):
