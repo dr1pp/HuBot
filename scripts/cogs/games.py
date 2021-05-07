@@ -217,6 +217,22 @@ class Games(commands.Cog):
                 await message.edit(content=build_board_msg(board))
 
 
+    @commands.command("blackjack")
+    async def blackjack(self, ctx, minimum: int = 10):
+        if minimum >= 10:
+            blackjack = BlackJack(ctx, self.bot, minimum)
+            await blackjack.play()
+        else:
+            await ctx.reply("Minimum bet must be at least 10")
+
+
+    def get_card_string(self, name):
+        for card in self.bot.playing_cards:
+            if card.name == name:
+                return
+        return None
+
+
 class SlotMachine:
     def __init__(self, ctx, bot, bet: int):
         self.ctx = ctx
