@@ -1,9 +1,34 @@
 import discord
 import random
 import asyncio
+import datetime
 
 
 from discord.ext import commands
+
+
+CARD_NAMES = [
+    "Ace",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+    "Ten",
+    "Jack",
+    "Queen",
+    "King"
+]
+
+SUIT_NAMES = {
+    "c": "Clubs",
+    "h": "Hearts",
+    "d": "Diamonds",
+    "s": "Spades"
+}
 
 
 class Games(commands.Cog):
@@ -200,20 +225,20 @@ class SlotMachine:
         self.user = self.ctx.message.author
         self.econ = self.bot.get_cog("Economy").manager
         self.values = {":watermelon:": 1,
-                      ":apple:": 1,
-                      ":tangerine:": 1.5,
-                      ":lemon:": 2,
-                      ":grapes:": 2.5,
-                      ":cherries:": 3,
-                      ":hearts:": 4,
-                      ":four_leaf_clover:": 5,
-                      ":euro:": 6,
-                      ":dollar:": 7,
-                      ":pound:": 8,
-                      ":bell:": 10,
-                      ":coin:": 20,
-                      ":seven:": 50
-                      }
+                       ":apple:": 1,
+                       ":tangerine:": 1.5,
+                       ":lemon:": 2,
+                       ":grapes:": 2.5,
+                       ":cherries:": 3,
+                       ":hearts:": 4,
+                       ":four_leaf_clover:": 5,
+                       ":euro:": 6,
+                       ":dollar:": 7,
+                       ":pound:": 8,
+                       ":bell:": 10,
+                       ":coin:": 20,
+                       ":seven:": 50
+                       }
         self.reactions = ["🔁", "❌"]
         self.wheel = []
         self.build_wheel()
@@ -306,6 +331,292 @@ class SlotMachine:
             else:
                 embed.add_field(name="__Results__", value=f"No match\nLost **฿{int(self.bet)}**")
         return embed
+
+class BlackJack:
+
+    class Player:
+        def __init__(self, bot: commands.Bot, user: discord.User, bet: int):
+            self.bot = bot
+            self.user = user
+            self.bet = bet
+            self.cards = list()
+            self.stood = False
+            self.played = False
+            self.playing = True
+
+
+        def give_random_cards(self, count: int=1):
+            self.cards.extend(random.choice(self.bot.playing_cards) for i in range(count))
+
+
+        def get_cards_string(self) -> str:
+            cards_string = ""
+            for card in self.cards:
+                cards_string += str(card)
+            return cards_string
+
+
+        def get_cards_values(self) -> list:
+            card_values = list()
+            min_value = 0
+            for card in self.cards:
+                if card.face_up:
+                    min_value += min([card.value, 10])
+            card_values.append(min_value)
+            for card in self.cards:
+                if card.value == 1 and card.face_up:
+                    card_values.append(card_values[-1] + 10)
+            return card_values
+
+
+        def get_best_card_total(self) -> int:
+            best = 0
+            for value in self.get_cards_values():
+                if best < value < 22:
+                    best = value
+            return best
+
+
+        def get_values_string(self) -> str:
+            values = self.get_cards_values()
+            values_string = str(values[0])
+            if len(values) > 1:
+                for value in values[1:]:
+                    values_string += f"/{value}"
+            return values_string
+
+
+        def check_cards(self):
+            if min(self.get_cards_values()) > 21:
+                self.playing = False
+                return False
+            return True
+
+
+        def can_play(self):
+            return max(self.get_cards_values()) < 17
+
+
+        def play(self):
+            if self.can_play():
+                self.give_random_cards()
+
+
+
+
+    def __init__(self, ctx, bot, minimum: int=10):
+        self.ctx = ctx
+        self.bot = bot
+        self.econ = self.bot.get_cog("Economy").manager
+        self.minimum = minimum
+        self.players = list()
+        self.dealer = self.Player(self.bot, self.bot.user, 0)
+        self.reactions = ("✅", "❌")
+
+
+
+    async def play(self):
+
+        async def take_bets():
+            embed = self.build_betting_embed()
+            betting_message = await self.ctx.send(embed=embed)
+            num_bets = 0
+
+            def check(m):
+                if m.reference:
+                    return m.reference.message_id == betting_message.id
+                return False
+
+            waiting = True
+            while waiting:
+                try:
+                    msg = await self.bot.wait_for("message", timeout=10, check=check)
+                    user = msg.author
+                    try:
+                        bet = int(msg.content)
+                        if self.econ.can_afford(user, bet):
+                            if bet >= self.minimum:
+                                player = self.find_player(user)
+                                if player is not None:
+                                    player.bet += bet
+                                else:
+                                    self.players.append(self.Player(self.bot, user, bet))
+                                await msg.delete()
+                                await self.ctx.send(f"{user.mention} has placed a bet of **฿{bet}**")
+                                num_bets += 1
+                            else:
+                                await self.ctx.reply(f"You must bet at least **฿{self.minimum}**")
+                        else:
+                            await self.ctx.reply("You do not have enough **e-฿ux** to bet this amount.")
+                    except:
+                        await self.ctx.send(f"'{msg.content}' is not a valid number")
+                except asyncio.TimeoutError:
+                    print("finished waiting")
+                    waiting = False
+            return num_bets
+
+
+        async def round():
+
+            async def initial_deal():
+                self.dealer.give_random_cards(2)
+                self.dealer.cards[1].flip()
+                for player in self.players:
+                    player.give_random_cards(2)
+                embed = self.build_embed()
+                msg = await self.ctx.send(embed=embed)
+                for emoji in self.reactions:
+                    await msg.add_reaction(emoji)
+                return msg
+
+
+            async def hit_cycle():
+                for player in self.players:
+                    player.played = False
+                waiting = True
+                while waiting:
+                    try:
+                        reaction, user = await self.bot.wait_for("reaction_add", timeout=10)
+                        player = self.find_player(user)
+                        if player is not None:
+                            if player.playing:
+                                if reaction.emoji == "✅":
+                                    if not player.stood:
+                                        player.played = True
+                                        player.give_random_cards()
+                                elif reaction.emoji == "❌":
+                                    print(f"{player.user} stood")
+                                    player.stood = True
+                                    player.played = True
+                                    player.playing = False
+                                await reaction.remove(user)
+                                for player in self.players:
+                                    if not player.played:
+                                        print(f"{player.user} has not chosen")
+                                        break
+                                    print("All users have chosen")
+                                    return
+                            else:
+                                await reaction.remove(user)
+                        elif user != self.bot.user:
+                            await reaction.remove(user)
+                    except asyncio.TimeoutError:
+                        for player in self.players:
+                            if not player.played:
+                                player.playing = False
+                        waiting = False
+
+
+            def check_finished():
+                for player in self.players:
+                    print(player.playing)
+                    if player.playing:
+                        print(f"{player.user} still playing")
+                        break
+                    print("All players finished playing")
+                    return True
+
+
+            async def give_winnings():
+                msg = ""
+                for player in self.players:
+                    if player.get_best_card_total() > self.dealer.get_best_card_total():
+                        msg += f"{player.user.mention} won **฿{player.bet}**\n"
+                        self.econ.give_money(player.user, player.bet)
+                    elif player.get_best_card_total() == self.dealer.get_best_card_total():
+                        msg += f"{player.user.mention} Pushed\n"
+                    elif player.get_best_card_total() < self.dealer.get_best_card_total():
+                        msg += f"{player.user.mention} lost **฿{player.bet}**\n"
+                        self.econ.give_money(player.user, -player.bet)
+                    print(player.get_best_card_total(), self.dealer.get_best_card_total())
+                await self.ctx.send(msg)
+
+
+            finished = False
+            game_msg = await initial_deal()
+            self.dealer.cards[1].flip()
+            await hit_cycle()
+            await game_msg.edit(embed=self.build_embed())
+            print("INITIAL HIT COMPLETE")
+            finished = check_finished()
+            while not finished:
+                await hit_cycle()
+                await game_msg.edit(embed=self.build_embed())
+                finished = check_finished()
+            if not check_finished():
+                while self.dealer.can_play():
+                    self.dealer.play()
+            await asyncio.sleep(5)
+            await game_msg.edit(embed=self.build_embed())
+            await give_winnings()
+            print("FINISHED")
+
+
+        active = True
+        while active:
+            for player in self.players:
+                player.bet = 0
+            num_bets = await take_bets()
+            if num_bets > 0:
+                await round()
+            else:
+                active = False
+
+
+    def build_embed(self) -> discord.Embed:
+        embed = discord.Embed(title=f"Blackjack - ฿{self.minimum} minimum", colour=0x038418)
+        embed.add_field(name=f"Dealer - {self.dealer.get_values_string()}", value=self.dealer.get_cards_string(), inline=False)
+        for player in self.players:
+            min_value = min(player.get_cards_values())
+            if min_value < 22:
+                embed.add_field(name=f"{player.user} - **฿{player.bet}**",
+                                value=f"{player.get_cards_string()}\n{player.get_values_string()}", inline=True)
+            else:
+                embed.add_field(name=f"~~{player.user} - **฿{player.bet}**~~ :boom:",
+                                value=f"{player.get_cards_string()}\n{player.get_values_string()}", inline=True)
+        return embed
+
+
+    def build_betting_embed(self) -> discord.Embed:
+        embed = discord.Embed(title=f"Blackjack - ฿{self.minimum} minimum",
+                              description="Dealer must hit to 16, stand at 17\nStarts 10 seconds after final bet is placed",
+                              colour=0x038418)
+        embed.add_field(name="How to join:",
+                        value="Reply to this message (Right click -> Reply) with the amount of **e-฿ux** you would like to bet on the game, then wait for it to start.",
+                        inline=False)
+        embed.add_field(name="How to play:",
+                        value="Once the game has started, you will be dealt your cards. You can then either choose to Hit :white_check_mark: to recieve another card, or Stand :x: to finish with the hand you have.",
+                        inline=False)
+        return embed
+
+
+    def find_player(self, user: discord.User):
+        for player in self.players:
+            if player.user.id == user.id:
+                return player
+        return None
+
+class Card:
+    def __init__(self, emoji):
+        self.emoji = emoji
+        self.id = self.emoji.id
+        self.value = int(self.emoji.name[1:])
+        self.suit = SUIT_NAMES[self.emoji.name[0]]
+        self.name = CARD_NAMES[self.value-1]
+        self.readable_name = f"{self.name} of {self.suit}"
+        self.face_up = True
+
+
+    def __str__(self):
+        if self.face_up:
+            return f"<:{self.emoji.name}:{self.id}>"
+        else:
+            return "<:card_back:840020324833165332>"
+
+
+    def flip(self):
+        self.face_up = not self.face_up
+
 
 def setup(bot):
     bot.add_cog(Games(bot))
