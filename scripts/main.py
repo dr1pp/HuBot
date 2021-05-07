@@ -6,15 +6,16 @@ import warnings
 
 from discord.ext.commands import Bot
 from sql import Database
+from cogs.games import Card
+
+
+RED_CARDS_GUILD_ID = 839985921302069248
+BLACK_CARDS_GUILD_ID = 839986047035506708
 
 
 warnings.filterwarnings("ignore")
 
 
-
-warnings.filterwarnings("ignore")
-
-# Add cogs to this list as they are merged into main branch
 initial_extensions = ["cogs.utility",
                       "cogs.economy",
                       "cogs.games",
@@ -29,8 +30,6 @@ bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     money INT)""")
 
 
-
-# Loads extensions (cogs) in from list provided
 if __name__ == "__main__":
     for extension in initial_extensions:
         bot.load_extension(extension)
@@ -41,8 +40,10 @@ if __name__ == "__main__":
 async def on_ready():
     print("===== [READY] =====")
     bot.me = await bot.fetch_user(210454616876253184)
+    emotes = await bot.get_guild(BLACK_CARDS_GUILD_ID).fetch_emojis()
+    emotes.extend(await bot.get_guild(RED_CARDS_GUILD_ID).fetch_emojis())
+    bot.playing_cards = [Card(emote) for emote in emotes if emote.name != "card_back"]
     await bot.me.send(f"✅ Online - {datetime.datetime.now()}")
-    print(bot.me)
 
 
 TOKEN = os.getenv("TOKEN")
