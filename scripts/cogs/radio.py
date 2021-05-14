@@ -69,7 +69,6 @@ class Radio(commands.Cog):
 
 
     async def play_track(self):
-        print("PLAYING NEXT SONG")
         if "song.mp3" in os.listdir("./"):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
@@ -83,12 +82,10 @@ class Radio(commands.Cog):
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
         next_track_downloaded = False
         while not next_track_downloaded:
-            try:
-                self.next.download()
+            if self.next.download():
                 next_track_downloaded = True
-
-            except youtube_dl.utils.DownloadError as e:
-                print(f"[YTDL] Download of {self.next.readable_name} threw the following exception: {e.exc_info}\nGetting next song")
+            else:
+                print("[PLAY_TRACK] Attempting to download new track")
                 self.next = get_random_track()
         return
 
@@ -97,6 +94,8 @@ class Radio(commands.Cog):
                       aliases=["s", "kip"])
     async def skip(self, ctx):
         self.voice.stop()
+        if not self.next.is_downloaded:
+            self.next.download()
         await self.play_track()
 
 
@@ -140,20 +139,29 @@ class Track:
         self.spotify_url = self.data['track']['external_urls']['spotify']
         start = datetime.datetime.now()
         self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
-        print(f"[TRACK INIT] Found YouTube data for {self.readable_name} in {datetime.datetime.now() - start}")
+        print(f"[TRACK INIT] Found YouTube data for {self.readable_name} in {datetime.datetime.now() - start}s")
         self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
         self.duration = self.youtube_data['duration']
         self.album_cover_url = self.data['track']['album']['images'][1]['url']
+        start = datetime.datetime.now()
         self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
+        self.is_downloaded = False
+        print(f"[TRACK INIT] Found Spotify Data for '{self.added_by.name}' in {datetime.datetime.now() - start}")
+        print("[TRACK INIT] Initialisation complete!")
 
 
-    def download(self):
+    def download(self) -> bool:
         start_time = datetime.datetime.now()
-        print(f"[YTDL] Downloading {self.readable_name} from {self.youtube_url}")
+        print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.youtube_url}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
-
-            ydl.download([self.youtube_url])
-        print(f"[YTDL] Download of {self.readable_name} complete in {datetime.datetime.now()-start_time}!")
+            try:
+                ydl.download([self.youtube_url])
+                print(f"[YTDL] Download of '{self.readable_name}' complete in {datetime.datetime.now() - start_time}s!")
+                self.is_downloaded = True
+            except youtube_dl.utils.DownloadError as err:
+                print(f"[YTDL] Download of '{self.readable_name}' threw the following exception: {err.exc_info}")
+                self.is_downloaded = False
+            return self.is_downloaded
 
 
 class SpotifyUser:
