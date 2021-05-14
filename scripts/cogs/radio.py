@@ -11,6 +11,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
+warnings.filterwarnings("ignore")
+
+
 
 PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
@@ -26,7 +29,7 @@ ydl_ops = {
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
-warnings.filterwarnings("ignore")
+
 
 class Radio(commands.Cog):
     def __init__(self, bot):
@@ -36,7 +39,6 @@ class Radio(commands.Cog):
         self.next = get_random_track()
         self.next.download()
         print("INIT TRACK CREATED")
-
 
 
     @commands.command(name="join",
@@ -63,23 +65,31 @@ class Radio(commands.Cog):
 
         self.voice.stop()
 
-        await self.play_track(self.next)
+        await self.play_track()
 
 
-    async def play_track(self, track):
+    async def play_track(self):
         print("PLAYING NEXT SONG")
         if "song.mp3" in os.listdir("./"):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for {self.current.readable_name}")
         os.rename("next.mp3", "song.mp3")
         print("[PLAY_TRACK] Renamed file")
-        self.current = track
+        self.current = self.next
         print("[PLAY_TRACK] Current track set")
         self.next = get_random_track()
         print(f"[PLAY_TRACK] Now playing {self.current.readable_name}")
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
-                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(self.next), self.bot.loop))
-        self.next.download()
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
+        next_track_downloaded = False
+        while not next_track_downloaded:
+            try:
+                self.next.download()
+                next_track_downloaded = True
+
+            except youtube_dl.utils.DownloadError as e:
+                print(f"[YTDL] Download of {self.next.readable_name} threw the following exception: {e.exc_info}\nGetting next song")
+                self.next = get_random_track()
         return
 
 
@@ -87,9 +97,7 @@ class Radio(commands.Cog):
                       aliases=["s", "kip"])
     async def skip(self, ctx):
         self.voice.stop()
-        await self.play_track(self.next)
-
-
+        await self.play_track()
 
 
     @commands.command(name="disconnect",
@@ -122,7 +130,6 @@ class Radio(commands.Cog):
         await ctx.send(embed=embed)
 
 
-
 class Track:
 
     def __init__(self, track_data):
@@ -144,6 +151,7 @@ class Track:
         start_time = datetime.datetime.now()
         print(f"[YTDL] Downloading {self.readable_name} from {self.youtube_url}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
+
             ydl.download([self.youtube_url])
         print(f"[YTDL] Download of {self.readable_name} complete in {datetime.datetime.now()-start_time}!")
 
