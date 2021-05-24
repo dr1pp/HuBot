@@ -122,15 +122,19 @@ class Radio(commands.Cog):
     @commands.command(name="nowplaying",
                       aliases=["np"])
     async def now_playing(self, ctx):
-        embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
-                              url=self.current.youtube_url,
-                              description=f"[Spotify Link]({self.current.spotify_url})",
-                              colour=discord.Colour(0x1DB954))
-        embed.set_thumbnail(url=self.current.album_cover_url)
-        embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-        embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
-        embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)    # TODO: Add time remaining to embed
-        await ctx.send(embed=embed)
+        try:
+            embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
+                                  url=self.current.youtube_url,
+                                  description=f"[Spotify Link]({self.current.spotify_url})",
+                                  colour=discord.Colour(0x1DB954))
+            embed.set_thumbnail(url=self.current.album_cover_url)
+            embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
+            embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
+            embed.add_field(name="In", value=self.voice.channel.name, inline=True)
+            embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)    # TODO: Add time remaining to embed
+            await ctx.send(embed=embed)
+        except AttributeError:
+            print("[$NOW_PLAYING] Unable to send now playing embed as current song not set")
 
 
 class Track:
