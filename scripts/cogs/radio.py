@@ -61,7 +61,7 @@ class Radio(commands.Cog):
         if self.voice:
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
-            self.voice.move_to(self.channel)
+            await self.voice.move_to(self.channel)
         else:
             print("[$JOIN] No voice client found in server, creating one")
             print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
@@ -69,7 +69,7 @@ class Radio(commands.Cog):
             if not self.voice.is_connected():
                 await self.channel.connect()
 
-        self.voice.stop()
+        await self.voice.stop()
 
         await self.play_track()
 
