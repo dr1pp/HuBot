@@ -68,10 +68,8 @@ class Radio(commands.Cog):
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
+            await self.play_track()
 
-        await self.voice.stop()
-
-        await self.play_track()
 
 
     async def play_track(self):
