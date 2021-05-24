@@ -44,10 +44,9 @@ class Radio(commands.Cog):
     @commands.command(name="join",
                       aliases=["play", "radio"])
     async def join(self, ctx):
-        print("JOINING VOICE CHANNEL")
 
         if "next.mp3" not in os.listdir("./"):
-            print("CREATING TRACK AS NONE FOUND")
+            print("[$JOIN] Creating initial track")
             self.next = get_random_track()
             async with ctx.channel.typing():
                 self.next.download()
@@ -56,16 +55,19 @@ class Radio(commands.Cog):
             self.channel = ctx.author.voice.channel
         else:
             self.channel = ctx.guild.get_channel(838175571216564264)
+        print(f"[$JOIN] Target channel is {self.channel.name}")
 
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if self.voice:
+            print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
+            print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             self.voice.move_to(self.channel)
         else:
+            print("[$JOIN] No voice client found in server, creating one")
+            print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
-            else:
-                await self.voice.move_to(self.channel)
 
         self.voice.stop()
 
