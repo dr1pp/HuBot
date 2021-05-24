@@ -89,7 +89,7 @@ class Radio(commands.Cog):
             if self.next.download():
                 next_track_downloaded = True
             else:
-                print("[PLAY_TRACK] Attempting to download new track")
+                print("[PLAY_TRACK] Download failed, attempting to download new track")
                 self.next = get_random_track()
         return
 
@@ -110,6 +110,7 @@ class Radio(commands.Cog):
             if self.voice.is_connected():
                 self.voice.stop()
                 await self.voice.disconnect()
+                self.next = get_random_track()
             else:
                 await ctx.send("The bot is not connected to a voice channel")
 
