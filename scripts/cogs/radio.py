@@ -52,16 +52,21 @@ class Radio(commands.Cog):
             async with ctx.channel.typing():
                 self.next.download()
 
-        self.channel = ctx.guild.get_channel(838175571216564264)
+        if ctx.author.voice and ctx.author.voice.channel:
+            self.channel = ctx.author.voice.channel
+        else:
+            self.channel = ctx.guild.get_channel(838175571216564264)
+
         await self.channel.edit(name="📻 DiscordFM 📻")
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        if not self.voice:
-            self.voice = await self.channel.connect()
-
-        elif not self.voice.is_connected():
-            await self.channel.connect()
+        if self.voice:
+            self.voice.move_to(self.channel)
         else:
-            await self.voice.move_to(self.channel)
+            self.voice = await self.channel.connect()
+            if not self.voice.is_connected():
+                await self.channel.connect()
+            else:
+                await self.voice.move_to(self.channel)
 
         self.voice.stop()
 
@@ -139,7 +144,7 @@ class Track:
         self.spotify_url = self.data['track']['external_urls']['spotify']
         start = datetime.datetime.now()
         self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
-        print(f"[TRACK INIT] Found YouTube data for {self.readable_name} in {datetime.datetime.now() - start}s")
+        print(f"[TRACK INIT] Found YouTube data for '{self.readable_name}' in {datetime.datetime.now() - start}s")
         self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
         self.duration = self.youtube_data['duration']
         self.album_cover_url = self.data['track']['album']['images'][1]['url']
@@ -159,7 +164,7 @@ class Track:
                 print(f"[YTDL] Download of '{self.readable_name}' complete in {datetime.datetime.now() - start_time}s!")
                 self.is_downloaded = True
             except youtube_dl.utils.DownloadError as err:
-                print(f"[YTDL] Download of '{self.readable_name}' threw the following exception: {err.exc_info}")
+                print(f"[YTDL] Download of $'{self.readable_name}' threw the following exception: {err.exc_info[1]}")
                 self.is_downloaded = False
             return self.is_downloaded
 
