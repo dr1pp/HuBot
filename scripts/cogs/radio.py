@@ -57,7 +57,6 @@ class Radio(commands.Cog):
         else:
             self.channel = ctx.guild.get_channel(838175571216564264)
 
-        await self.channel.edit(name="📻 DiscordFM 📻")
         self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if self.voice:
             self.voice.move_to(self.channel)
