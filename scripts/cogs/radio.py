@@ -77,11 +77,11 @@ class Radio(commands.Cog):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
         os.rename("next.mp3", "song.mp3")
-        print(f"[PLAY_TRACK] Renamed file for '{self.next.readable_name}'")
+        self.current = self.next
+        print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
         print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
-        self.current = self.next
         self.next = get_random_track()
         next_track_downloaded = False
         while not next_track_downloaded:
