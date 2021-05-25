@@ -81,6 +81,7 @@ class Radio(commands.Cog):
         print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
+        self.current.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
         self.next = get_random_track()
         next_track_downloaded = False
@@ -120,21 +121,32 @@ class Radio(commands.Cog):
 
 
     @commands.command(name="nowplaying",
-                      aliases=["np"])
+                      aliases=["np", "current", "next", ])
     async def now_playing(self, ctx):
-        try:
-            embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
-                                  url=self.current.youtube_url,
-                                  description=f"[Spotify Link]({self.current.spotify_url})",
-                                  colour=discord.Colour(0x1DB954))
-            embed.set_thumbnail(url=self.current.album_cover_url)
-            embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-            embed.add_field(name="Length", value=self.current.duration, inline=True)                                        # TODO: Pull duration from mp3 file rather than spotify
-            embed.add_field(name="In", value=self.voice.channel.name, inline=True)
-            embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)    # TODO: Add time remaining to embed
-            await ctx.send(embed=embed)
-        except AttributeError:
-            print("[$NOW_PLAYING] Unable to send now playing embed as current song not set")
+        searching_message_sent = False
+        sent = False
+        while not sent:
+            try:
+                embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
+                                      url=self.current.youtube_url,
+                                      description=f"[Spotify Link]({self.current.spotify_url})",
+                                      colour=discord.Colour(0x1DB954))
+                embed.set_thumbnail(url=self.current.album_cover_url)
+                embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
+                embed.add_field(name="Length", value=self.current.duration, inline=True)  # TODO: Pull duration from mp3 file rather than spotify
+                embed.add_field(name="Progress", value=self.current.playing_progress())
+                embed.add_field(name="In", value=self.voice.channel.name, inline=True)
+                embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
+                await ctx.send(embed=embed)
+                sent = True
+                if searching_message_sent:
+                    await searching_message.delete()
+            except AttributeError:
+                if not searching_message_sent:
+                    searching_message = await ctx.reply("🔎 Searching for song data, please wait...")
+                    searching_message_sent = True
+                with ctx.typing():
+                    await asyncio.sleep(3)
 
 
 class Track:
@@ -154,6 +166,7 @@ class Track:
         start = datetime.datetime.now()
         self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
         self.is_downloaded = False
+        self.started_playing_at = None
         print(f"[TRACK INIT] Found Spotify Data for '{self.added_by.name}' in {datetime.datetime.now() - start}")
         print("[TRACK INIT] Initialisation complete!")
 
@@ -170,6 +183,12 @@ class Track:
                 print(f"[YTDL] Download of $'{self.readable_name}' threw the following exception: {err.exc_info[1]}")
                 self.is_downloaded = False
             return self.is_downloaded
+
+
+    def playing_progress(self):
+        progress = datetime.datetime.now() - self.started_playing_at
+        seconds = progress.seconds
+        return f"{(seconds // 60):02d}:{(seconds % 60):02d}"
 
 
 class SpotifyUser:
