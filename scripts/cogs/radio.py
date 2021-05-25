@@ -134,8 +134,8 @@ class Radio(commands.Cog):
                 embed.set_thumbnail(url=self.current.album_cover_url)
                 embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
                 embed.add_field(name="Length", value=self.current.duration, inline=True)  # TODO: Pull duration from mp3 file rather than spotify
-                embed.add_field(name="Progress", value=self.current.playing_progress())
-                embed.add_field(name="In", value=self.voice.channel.name, inline=True)
+                embed.add_field(name="Progress", value=self.current.playing_progress(), inline=True)
+                embed.add_field(name="In", value=self.voice.channel.name, inline=False)
                 embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
                 await ctx.send(embed=embed)
                 sent = True
