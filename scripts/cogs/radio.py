@@ -13,6 +13,7 @@ from youtube_search import YoutubeSearch
 
 warnings.filterwarnings("ignore")
 
+INTERMISSIONS_DIR = "./radio_sounds"
 
 
 PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
@@ -75,8 +76,7 @@ class Radio(commands.Cog):
     async def play_track(self):
 
         def get_intermission():
-            print(os.listdir("./"))
-            names = os.listdir("./radio_sounds")
+            names = os.listdir(INTERMISSIONS_DIR)
             if rand.randint(0, 10) > 0:
                 return rand.choice(names)
             return None
@@ -85,7 +85,7 @@ class Radio(commands.Cog):
         intermission = get_intermission()
         if intermission:
             print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
-            self.voice.play(discord.FFmpegPCMAudio(f"./radio_sounds/{intermission}"))
+            self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"))
             while self.voice.is_playing:
                 print("[PLAY_TRACK] Waiting for intermission to end")
                 await asyncio.sleep(0.1)
