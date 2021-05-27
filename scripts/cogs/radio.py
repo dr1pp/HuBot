@@ -147,7 +147,7 @@ class Radio(commands.Cog):
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                                       url=self.current.spotify_url,
-                                      description=f"<:youtube:847561285948407819> [Source]({self.current.youtube_url})",
+                                      description=f"<:youtube:847561221514985502> [Source]({self.current.youtube_url})",
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.album_cover_url)
                 embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
