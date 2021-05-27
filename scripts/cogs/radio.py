@@ -77,8 +77,8 @@ class Radio(commands.Cog):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
         os.rename("next.mp3", "song.mp3")
-        self.current = self.next
         print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
+        self.current = self.next
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
         self.current.started_playing_at = datetime.datetime.now()
@@ -129,7 +129,7 @@ class Radio(commands.Cog):
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                                       url=self.current.youtube_url,
-                                      description=f"[Spotify Link]({self.current.spotify_url})",
+                                      description=f"[Spotify Link]({self.current.spotify_url})",  # TODO: Add youtube logo emoji and swap links (youtube link will say "Source"
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.album_cover_url)
                 embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
