@@ -82,6 +82,7 @@ class Radio(commands.Cog):
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_intermission(), self.bot.loop))
         self.current.started_playing_at = datetime.datetime.now()
+        presence = discord.Game(self.current.readable_name, start=self.current.started_playing_at)
         print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
         self.next = get_random_track()
         next_track_downloaded = False
@@ -91,6 +92,7 @@ class Radio(commands.Cog):
             else:
                 print(f"[PLAY_TRACK] Download of '{self.next.readable_name}' failed, attempting to download new track")
                 self.next = get_random_track()
+        await self.bot.change_presence(status=discord.Status.online, activity=presence)
         return
 
 
