@@ -86,7 +86,7 @@ class Radio(commands.Cog):
                                     name=self.current.readable_name,
                                     state=f"In {self.channel}",
                                     start=self.current.started_playing_at,
-                                    emoji="🔊",
+                                    emoji={"🔊"},
                                     url=self.current.spotify_url,
                                     small_image_url=self.current.album_cover_url
                                     )
@@ -100,6 +100,7 @@ class Radio(commands.Cog):
                 print(f"[PLAY_TRACK] Download of '{self.next.readable_name}' failed, attempting to download new track")
                 self.next = get_random_track()
         await self.bot.change_presence(status=discord.Status.online, activity=presence)
+        print(f"[PLAY_TRACK] Bot activity set")
         return
 
 
