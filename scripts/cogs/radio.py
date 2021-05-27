@@ -86,7 +86,6 @@ class Radio(commands.Cog):
                                     name=self.current.readable_name,
                                     state=f"In {self.channel}",
                                     start=self.current.started_playing_at,
-                                    emoji={"🔊"},
                                     url=self.current.spotify_url,
                                     small_image_url=self.current.album_cover_url
                                     )
