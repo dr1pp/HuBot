@@ -82,7 +82,14 @@ class Radio(commands.Cog):
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_intermission(), self.bot.loop))
         self.current.started_playing_at = datetime.datetime.now()
-        presence = discord.Game(self.current.readable_name, start=self.current.started_playing_at)
+        presence = discord.Activity(type=discord.ActivityType.listening,
+                                    name=self.current.readable_name,
+                                    state=f"In {self.channel}",
+                                    start=self.current.started_playing_at,
+                                    emoji="🔊",
+                                    url=self.current.spotify_url,
+                                    small_image_url=self.current.album_cover_url
+                                    )
         print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
         self.next = get_random_track()
         next_track_downloaded = False
