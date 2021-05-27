@@ -127,6 +127,7 @@ class Radio(commands.Cog):
             if self.voice.is_connected():
                 self.voice.stop()
                 await self.voice.disconnect()
+                print("[DISCONNECT] Bot disconnected from voice")
                 self.next = get_random_track()
             else:
                 await ctx.send("The bot is not connected to a voice channel")
