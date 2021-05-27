@@ -138,7 +138,7 @@ class Radio(commands.Cog):
 
 
     @commands.command(name="nowplaying",
-                      aliases=["np", "current", "next", ])
+                      aliases=["np", "current"])
     async def now_playing(self, ctx):
         searching_message_sent = False
         sent = False
@@ -146,11 +146,11 @@ class Radio(commands.Cog):
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                                       url=self.current.spotify_url,
-                                      description=f"[<:youtube:847561285948407819> Source]({self.current.youtube_url})",  # TODO: Add youtube logo emoji and swap links (youtube link will say "Source"
+                                      description=f"[<:youtube:847561285948407819> Source]({self.current.youtube_url})",
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.album_cover_url)
                 embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-                embed.add_field(name="Length", value=self.current.duration, inline=True)  # TODO: Pull duration from mp3 file rather than spotify
+                embed.add_field(name="Length", value=self.current.duration, inline=True)
                 embed.add_field(name="Progress", value=self.current.playing_progress(), inline=True)
                 embed.add_field(name="In", value=self.voice.channel.name, inline=False)
                 embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
