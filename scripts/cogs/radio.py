@@ -79,8 +79,8 @@ class Radio(commands.Cog):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
         os.rename("next.mp3", "song.mp3")
-        print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
         self.current = self.next
+        print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
                         after=lambda e: asyncio.run_coroutine_threadsafe(self.play_intermission(), self.bot.loop))
         self.current.started_playing_at = datetime.datetime.now()
