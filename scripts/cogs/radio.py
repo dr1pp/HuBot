@@ -97,7 +97,7 @@ class Radio(commands.Cog):
     async def play_intermission(self):
         def get_intermission():
             names = os.listdir(INTERMISSIONS_DIR)
-            if rand.randint(0, 10) > 0:
+            if rand.randint(0, 5) == 0:
                 return rand.choice(names)
             return None
 
