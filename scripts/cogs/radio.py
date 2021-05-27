@@ -75,21 +75,6 @@ class Radio(commands.Cog):
 
     async def play_track(self):
 
-        def get_intermission():
-            names = os.listdir(INTERMISSIONS_DIR)
-            if rand.randint(0, 10) > 0:
-                return rand.choice(names)
-            return None
-
-
-        intermission = get_intermission()
-        if intermission:
-            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
-            self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"))
-            while self.voice.is_playing:
-                print("[PLAY_TRACK] Waiting for intermission to end")
-                await asyncio.sleep(0.1)
-
         if "song.mp3" in os.listdir("./"):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
@@ -97,7 +82,7 @@ class Radio(commands.Cog):
         print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
         self.current = self.next
         self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
-                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
+                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_intermission(), self.bot.loop))
         self.current.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
         self.next = get_random_track()
@@ -111,6 +96,21 @@ class Radio(commands.Cog):
         return
 
 
+    async def play_intermission(self):
+        def get_intermission():
+            names = os.listdir(INTERMISSIONS_DIR)
+            if rand.randint(0, 10) > 0:
+                return rand.choice(names)
+            return None
+
+
+        intermission = get_intermission()
+        if intermission:
+            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
+            self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"),
+                            after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
+        else:
+            await self.play_track()
 
 
 
