@@ -145,8 +145,8 @@ class Radio(commands.Cog):
         while not sent:
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
-                                      url=self.current.youtube_url,
-                                      description=f"[Spotify Link]({self.current.spotify_url})",  # TODO: Add youtube logo emoji and swap links (youtube link will say "Source"
+                                      url=self.current.spotify_url,
+                                      description=f"[<:youtube:847561285948407819> Source]({self.current.youtube_url})",  # TODO: Add youtube logo emoji and swap links (youtube link will say "Source"
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.album_cover_url)
                 embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
