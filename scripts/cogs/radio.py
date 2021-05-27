@@ -73,6 +73,22 @@ class Radio(commands.Cog):
 
 
     async def play_track(self):
+
+        def get_intermission():
+            names = os.listdir("./radio_sounds")
+            if rand.randint(0, 10) > 0:
+                return rand.choice(names)
+            return None
+
+
+        intermission = get_intermission()
+        if intermission:
+            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
+            self.voice.play(discord.FFmpegPCMAudio(f"./radio_sounds/{intermission}"))
+            while self.voice.is_playing:
+                print("[PLAY_TRACK] Waiting for intermission to end")
+                await asyncio.sleep(0.1)
+
         if "song.mp3" in os.listdir("./"):
             os.remove("song.mp3")
             print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
@@ -92,6 +108,10 @@ class Radio(commands.Cog):
                 print(f"[PLAY_TRACK] Download of '{self.next.readable_name}' failed, attempting to download new track")
                 self.next = get_random_track()
         return
+
+
+
+
 
 
     @commands.command(name="skip",
