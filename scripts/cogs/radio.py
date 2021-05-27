@@ -31,7 +31,6 @@ ydl_ops = {
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
 
-
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -72,7 +71,6 @@ class Radio(commands.Cog):
             await self.play_track()
 
 
-
     async def play_track(self):
 
         if "song.mp3" in os.listdir("./"):
@@ -111,8 +109,6 @@ class Radio(commands.Cog):
                             after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
         else:
             await self.play_track()
-
-
 
 
     @commands.command(name="skip",
