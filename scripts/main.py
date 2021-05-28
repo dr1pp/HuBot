@@ -1,6 +1,7 @@
 import os
 import datetime
 import warnings
+from discord import Game
 
 import warnings
 
@@ -44,6 +45,8 @@ async def on_ready():
     emotes.extend(await bot.get_guild(RED_CARDS_GUILD_ID).fetch_emojis())
     bot.playing_cards = [Card(emote) for emote in emotes if emote.name != "card_back"]
     await bot.me.send(f"✅ Online - {datetime.datetime.now()}")
+    activity = Game("$help")
+    await bot.change_presence(activity=activity)
 
 
 TOKEN = os.getenv("TOKEN")
