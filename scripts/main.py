@@ -3,6 +3,7 @@ import datetime
 import warnings
 from discord import Game
 from discord_components import DiscordComponents
+from discord_slash import SlashCommand
 
 
 from discord.ext.commands import Bot
@@ -25,6 +26,7 @@ initial_extensions = ["cogs.utility",
 
 
 bot = Bot(command_prefix="$")
+slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 bot.db = Database()
 bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     id INT NOT NULL PRIMARY KEY,
