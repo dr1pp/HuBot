@@ -181,6 +181,8 @@ class Track:
         print(f"[TRACK INIT] Found YouTube data for '{self.readable_name}' in {datetime.datetime.now() - start}s")
         self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
         self.duration = self.youtube_data['duration']
+        if len(self.duration) % 2 == 0 and not self.duration.startswith("0"):
+            self.duration = "0" + self.duration
         self.album_cover_url = self.data['track']['album']['images'][1]['url']
         start = datetime.datetime.now()
         self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
