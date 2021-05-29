@@ -2,6 +2,8 @@ import discord
 import random
 import asyncio
 import datetime
+import utility as util
+import discord_components as components
 
 
 from discord.ext import commands
@@ -255,7 +257,6 @@ class SlotMachine:
                        ":coin:": 20,
                        ":seven:": 50
                        }
-        self.reactions = ["🔁", "❌"]
         self.wheel = []
         self.build_wheel()
 
@@ -267,47 +268,40 @@ class SlotMachine:
 
 
     async def play(self):
+
+        async def spin(ctx):
+            if self.econ.can_afford(self.user, self.bet):
+                await asyncio.sleep(4)
+                self.econ.give_money(self.user, -self.bet)
+                grid = self.generate_grid()
+                won, mult = self.check_win(grid)
+                winnings = int(self.bet * mult)
+                self.econ.give_money(self.user, winnings)
+                await ctx.respond(type=components.InteractionType.UpdateMessage,
+                                  embed=self.build_embed(grid, won, mult))
+            else:
+                await ctx.respond(type=components.InteractionType.ChannelMessageWithSource,
+                                  content=f"You cannot afford to put **฿{self.bet}** into this machine")
+                await asyncio.sleep(5)
+                await ctx.message.delete()
+
+
+        async def quit(ctx):
+            await ctx.message.delete()
+
+
         if self.econ.can_afford(self.user, self.bet):
-            finished = False
             self.econ.give_money(self.user, -self.bet)
             grid = self.generate_grid()
             won, mult = self.check_win(grid)
             winnings = int(self.bet * mult)
-            slot_message = await self.ctx.reply(embed = self.build_embed(grid, won, mult))
+            game = util.InteractiveMessage(self.bot, embed=self.build_embed(grid, won, mult))
+            game.add_button(0, components.Button(label="Spin", style=components.ButtonStyle.green), spin)
+            game.add_button(0, components.Button(label="Quit", style=components.ButtonStyle.red), quit)
+            game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
-            for reaction in self.reactions:
-                await slot_message.add_reaction(reaction)
-            while not finished:
-                try:
-                    reaction, user = await self.bot.wait_for('reaction_add', timeout=30)
-                    if user == self.user:
-                        if reaction.emoji == "🔁":
-                            await reaction.remove(user)
-                            if self.econ.can_afford(self.user, self.bet):
-                                await asyncio.sleep(4)
-                                self.econ.give_money(self.user, -self.bet)
-                                grid = self.generate_grid()
-                                won, mult = self.check_win(grid)
-                                winnings = int(self.bet*mult)
-                                self.econ.give_money(self.user, winnings)
-                                await slot_message.edit(embed=self.build_embed(grid, won, mult))
-                            else:
-                                broke_msg = await slot_message.reply(f"{self.user.mention} You cannot afford to put **฿{self.bet}** into this machine")
-                                await asyncio.sleep(5)
-                                await broke_msg.delete()
-                                await slot_message.delete()
-                                finished = True
-                        elif reaction.emoji == "❌":
-                            finished = True
-                            await slot_message.delete()
-                        else:
-                            await reaction.remove(user)
-                    else:
-                        if user != self.bot.user:
-                            await reaction.remove(user)
-                except asyncio.TimeoutError:
-                    finished = True
-                    await slot_message.delete()
+            await game.send_message(self.ctx.channel)
+
         else:
             await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")
 
