@@ -45,58 +45,10 @@ class Games(commands.Cog):
 
     @cog_ext.cog_slash(name="slots",
                        description="Slot machine minigame",
-                       )
-    async def slots(self, ctx, amount: int=None):
-        await ctx.defer()
-        if amount is None:
-
-            def check(m):
-                if m.author == ctx.message.author:
-                    try:
-                        int(m.content)
-                        return True
-                    except:
-                        return False
-                else:
-                    return False
-
-            await ctx.reply(f"How many **e-฿UX** would you like to put in to the slot machine?")
-
-            try:
-                response = await self.bot.wait_for("message", timeout=20, check=check)
-                amount = int(response.content)
-                await ctx.invoke(self.slots.get_command('play'), amount=amount)
-
-            except asyncio.TimeoutError:
-                reply = await ctx.reply("You did not specify a wager amount")
-                await asyncio.sleep(10)
-                await reply.delete()
-                await ctx.message.delete()
-
-        else:
-            try:
-                await ctx.invoke(self.slots.get_command('play'), amount=int(amount))
-            except ValueError:
-                await ctx.reply(f"`'{amount}'` is not a valid number of **e-฿UX**")
-
-
-    @slots.command("play")
-    async def play(self, ctx, amount):
-        user = ctx.message.author
-        print(amount)
-        if amount == "all":
-            amount = self.econ_manager.balance(user)
-        elif amount == "half":
-            amount = int(self.econ_manager.balance(user) / 2)
-        else:
-            amount = int(amount)
+                       guild_ids=[336950154189864961])
+    async def slots(self, ctx: SlashContext, amount: int):
         slots = SlotMachine(ctx, self.bot, amount)
         await slots.play()
-
-
-    @slots.command("chances")
-    async def chances(self, ctx):
-        pass
 
 
     @commands.command(name="connect4",
@@ -289,6 +241,10 @@ class SlotMachine:
             await ctx.message.delete()
 
 
+        async def change_bet(ctx):
+            pass
+
+
         if self.econ.can_afford(self.user, self.bet):
             self.econ.give_money(self.user, -self.bet)
             grid = self.generate_grid()
@@ -326,7 +282,7 @@ class SlotMachine:
 
 
     def build_embed(self, g, won, mult=0):
-        embed = discord.Embed(title=f"Slot Machine - **฿{self.bet}**", description=f"Balance: **฿{self.econ.balance(self.user)}**")
+        embed = discord.Embed(title="Slot Machine", description=f"Balance: **฿{self.econ.balance(self.user)}**")
         embed.add_field(name=":black_large_square::one:", value=f":blue_square: {g[0][0]}\n:arrow_right: {g[1][0]}\n:blue_square: {g[2][0]}")
         embed.add_field(name=":two:", value=f"{g[0][1]}\n{g[1][1]}\n{g[2][1]}")
         embed.add_field(name=":three::black_large_square:", value=f"{g[0][2]} :blue_square:\n{g[1][2]} :arrow_left:\n{g[2][2]} :blue_square:")
