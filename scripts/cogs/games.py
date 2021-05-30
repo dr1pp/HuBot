@@ -2,7 +2,7 @@ import discord
 import random
 import asyncio
 import datetime
-import utility as util
+import cogs.utility as util
 import discord_components as components
 
 
