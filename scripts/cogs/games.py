@@ -7,6 +7,7 @@ import discord_components as components
 
 
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
 
 
 CARD_NAMES = [
@@ -42,10 +43,11 @@ class Games(commands.Cog):
         self.c4_emotes = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣']
 
 
-    @commands.group(name="slots",
-                    aliases=["slot", "lots", "lot"],
-                    brief="Slot machine minigame")
-    async def slots(self, ctx, amount=None):  # TODO : Refactor to use embed and be repeatable with current balance
+    @cog_ext.cog_slash(name="slots",
+                       description="Slot machine minigame",
+                       )
+    async def slots(self, ctx, amount: int=None):
+        await ctx.defer()
         if amount is None:
 
             def check(m):
@@ -70,9 +72,6 @@ class Games(commands.Cog):
                 await asyncio.sleep(10)
                 await reply.delete()
                 await ctx.message.delete()
-
-        elif amount == "chances":
-            await ctx.invoke(self.slots.get_command('chances'))
 
         else:
             try:
@@ -300,7 +299,7 @@ class SlotMachine:
             game.add_button(0, components.Button(label="Quit", style=components.ButtonStyle.red), quit)
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
-            await game.send_message(self.ctx.channel)
+            await game.send_message(self.ctx)
 
         else:
             await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")

@@ -42,8 +42,8 @@ class InteractiveMessage:
         return [[item[0] for item in row] for row in self.items]
 
 
-    async def send_message(self, channel):
-        self.message = await channel.send(self.content, embed=self.embed, components=self.get_components_list())
+    async def send_message(self, ctx):
+        self.message = await ctx.send(self.content, embed=self.embed, components=self.get_components_list())
         listening = True
         while listening:
             try:
