@@ -191,7 +191,7 @@ class SlotMachine:
         self.ctx = ctx
         self.bot = bot
         self.bet = bet
-        self.user = self.ctx.message.author
+        self.user = self.ctx.author
         self.econ = self.bot.get_cog("Economy").manager
         self.values = {":watermelon:": 1,
                        ":apple:": 1,
