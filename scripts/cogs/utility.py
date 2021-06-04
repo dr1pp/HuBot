@@ -43,7 +43,7 @@ class InteractiveMessage:
 
 
     async def send_message(self, ctx):
-        self.message = await ctx.send(self.content, embed=self.embed, components=self.get_components_list())
+        self.message = await ctx.channel.send(self.content, embed=self.embed, components=self.get_components_list())
         listening = True
         while listening:
             try:
