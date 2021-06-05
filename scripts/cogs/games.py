@@ -41,10 +41,9 @@ class Games(commands.Cog):
         self.econ_manager = self.economy.manager
 
 
-    @cog_ext.cog_slash(name="slots",
-                       description="Slot machine minigame",
-                       guild_ids=[336950154189864961])
-    async def slots(self, ctx: SlashContext, amount: int):
+    @commands.command(name="slots",
+                       description="Slot machine minigame")
+    async def slots(self, ctx, amount: int):
         slots = SlotMachine(ctx, self.bot, amount)
         await slots.play()
 
@@ -53,7 +52,7 @@ class Games(commands.Cog):
                       aliases=["c4"])
     async def connect4(self, ctx, target: discord.User, wager: int = 0):
         players = [target, ctx.message.author]
-        game = ConnectFour(ctx, self.bot, players)
+        game = ConnectFour(ctx, self.bot, players, wager)
         await game.play()
 
 
