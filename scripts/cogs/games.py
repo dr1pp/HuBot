@@ -131,7 +131,7 @@ class SlotMachine:
         async def change_bet(ctx):
             pass
 
-
+        await self.ctx.respond(typ=components.InteractionType.DeferredUpdateMessage)
         if self.econ.can_afford(self.user, self.bet):
             self.econ.give_money(self.user, -self.bet)
             grid = self.generate_grid()

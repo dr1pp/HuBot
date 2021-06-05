@@ -58,7 +58,6 @@ class EconomyManager:
 
     def enlist_user(self, user: discord.User):
         self.db.execute("INSERT INTO UserData VALUES (?, 100)", (user.id,))
-        print("enlisted", user.id)
 
 
     def check_user_exists(self, user: discord.User):
