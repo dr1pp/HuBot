@@ -76,23 +76,24 @@ class Radio(commands.Cog):
                 return
 
         print(f"[$JOIN] Target channel is {self.channel.name}")
-        embed = discord.Embed(title=":radio: Discord FM :radio:", colour=0x5DADEC)
+        embed = discord.Embed(title="Discord FM :headphones:", colour=0x5DADEC)
         if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
             self.voice = voice
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
-            embed.description = f"Moved to {self.channel.mention}"
-
+            embed.add_field(name="**Moved to**", value=self.channel.mention)
+            await ctx.send(embed=embed)
         else:
             print("[$JOIN] No voice client found in server, creating one")
             print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
-            embed.description = f"Joined {self.channel.mention}"
+            embed.add_field(name="**Joined**", value=self.channel.mention)
+            await ctx.send(embed=embed)
             await self.play_track()
-        await ctx.send(embed=embed)
+
 
 
     async def play_track(self):
