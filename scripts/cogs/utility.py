@@ -86,7 +86,7 @@ class Utility(commands.Cog):
                 self.bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     id INT NOT NULL PRIMARY KEY,
                                                     money INT,
-                                                    role_id INT)""")
+                                                    role_id INT DEFAULT NULL)""")
         else:
             await ctx.send("You do not have the permissions to use this command")
 

@@ -7,9 +7,13 @@ import asyncio
 import warnings
 import datetime
 
+from discord_slash import cog_ext, SlashContext
+from discord_slash.model import SlashCommandOptionType
+from discord_slash.utils.manage_commands import create_option, create_choice
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from youtube_search import YoutubeSearch
+
 
 warnings.filterwarnings("ignore")
 
@@ -35,15 +39,16 @@ class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.current = None
-        print("CREATING INITIALISATION TRACK")
+        print("[RADIO COG INIT] Creating initialization track")
         self.next = get_random_track()
         self.next.download()
-        print("INIT TRACK CREATED")
+        print("[RADIO COG INIT] Initialization track created")
 
 
-    @commands.command(name="join",
-                      aliases=["play", "radio"])
-    async def join(self, ctx):
+    @cog_ext.cog_slash(name="join",
+                       description="Summon the bot to play the radio in your current voice channel",
+                       guild_ids=[336950154189864961])
+    async def join(self, ctx: SlashContext):
 
         if "next.mp3" not in os.listdir("./"):
             print("[$JOIN] Creating initial track")
@@ -54,10 +59,10 @@ class Radio(commands.Cog):
         if ctx.author.voice and ctx.author.voice.channel:
             self.channel = ctx.author.voice.channel
         else:
-            self.channel = ctx.guild.get_channel(838175571216564264)
+            self.channel = ctx.message.guild.get_channel(838175571216564264)
         print(f"[$JOIN] Target channel is {self.channel.name}")
 
-        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.message.guild)
         if self.voice:
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
@@ -112,18 +117,20 @@ class Radio(commands.Cog):
             await self.play_track()
 
 
-    @commands.command(name="skip",
-                      aliases=["s", "kip"])
-    async def skip(self, ctx):
+    @cog_ext.cog_slash(name="skip",
+                       description="Skip the current song playing on the radio",
+                       guild_ids=[336950154189864961])
+    async def skip(self, ctx: SlashContext):
         self.voice.stop()
         if not self.next.is_downloaded:
             self.next.download()
         await self.play_track()
 
 
-    @commands.command(name="disconnect",
-                      aliases=["dc", "leave"])
-    async def disconnect(self, ctx):
+    @cog_ext.cog_slash(name="disconnect",
+                       description="Disconnect the bot from voice",
+                       guild_ids=[336950154189864961])
+    async def disconnect(self, ctx: SlashContext):
         if ctx.author.voice and ctx.author.voice.channel:
             if self.voice.is_connected():
                 self.voice.stop()
@@ -134,14 +141,17 @@ class Radio(commands.Cog):
                 await ctx.send("The bot is not connected to a voice channel")
 
 
-    @commands.command(name="playlist")
-    async def playlist(self, ctx):
-        await ctx.send(f"https://open.spotify.com/playlist/{PLAYLIST_ID}")
+    @cog_ext.cog_slash(name="playlist",
+                       description="Get a link to the playlist used for the radio station",
+                       guild_ids=[336950154189864961])
+    async def playlist(self, ctx: SlashContext):
+        await ctx.send(f"https://open.spotify.com/playlist/{PLAYLIST_ID}", hidden=True)
 
 
-    @commands.command(name="nowplaying",
-                      aliases=["np", "current"])
-    async def now_playing(self, ctx):
+    @cog_ext.cog_slash(name="np",
+                       description="Show the song currently playing on the radio")
+    async def now_playing(self, ctx: SlashContext):
+        await ctx.defer()
         searching_message_sent = False
         sent = False
         while not sent:
@@ -156,15 +166,14 @@ class Radio(commands.Cog):
                 embed.add_field(name="Progress", value=self.current.playing_progress(), inline=True)
                 embed.add_field(name="In", value=self.voice.channel.name, inline=False)
                 embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
-                await ctx.send(embed=embed)
+                await ctx.send(embed=embed, hidden=True)
                 sent = True
                 if searching_message_sent:
                     await searching_message.delete()
             except AttributeError:
                 if not searching_message_sent:
-                    searching_message = await ctx.reply("🔎 Searching for song data, please wait...")
+                    searching_message = await ctx.send("🔎 Searching for song data, please wait...", hidden=True)
                     searching_message_sent = True
-                with ctx.typing():
                     await asyncio.sleep(3)
 
 
