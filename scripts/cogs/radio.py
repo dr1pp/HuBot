@@ -15,7 +15,7 @@ from discord.ext import commands
 from youtube_search import YoutubeSearch
 
 
-warnings.filterwarnings("ignore")
+
 
 INTERMISSIONS_DIR = "./radio_sounds"
 
@@ -63,20 +63,25 @@ class Radio(commands.Cog):
             self.channel = ctx.guild.get_channel(838175571216564264)
         print(f"[$JOIN] Target channel is {self.channel.name}")
 
-        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        if self.voice:
+        if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
+            self.voice = voice
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
-            await ctx.send(f":musical_note: Moved to {self.channel.mention}")
+            embed = discord.Embed(title="Discord FM",
+                                  description=f"Moved to {self.channel.mention}",
+                                  colour=0x5DADEC)
         else:
             print("[$JOIN] No voice client found in server, creating one")
             print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
-            await ctx.send(f":musical_note: Joined {self.channel.mention}")
+            embed = discord.Embed(title="Discord FM",
+                                  description=f"Joined {self.channel.mention}",
+                                  colour=0x5DADEC)
             await self.play_track()
+        await ctx.send(embed=embed)
 
 
     async def play_track(self):
@@ -99,7 +104,6 @@ class Radio(commands.Cog):
             else:
                 print(f"[PLAY_TRACK] Download of '{self.next.readable_name}' failed, attempting to download new track")
                 self.next = get_random_track()
-        print(f"[PLAY_TRACK] Bot activity set")
         return
 
 
@@ -145,7 +149,7 @@ class Radio(commands.Cog):
                 print("[DISCONNECT] Bot disconnected from voice")
                 self.next = get_random_track()
             else:
-                await ctx.send("The bot is not connected to a voice channel", hidden=True, delete_after=5)
+                await ctx.send("The bot is not connected to a voice channel", hidden=True)
 
 
     @cog_ext.cog_slash(name="playlist",
@@ -175,8 +179,6 @@ class Radio(commands.Cog):
                 embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
                 await ctx.send(embed=embed, hidden=True)
                 sent = True
-                if searching_message_sent:
-                    await searching_message.delete()
             except AttributeError:
                 if not searching_message_sent:
                     searching_message = await ctx.send("🔎 Searching for song data, please wait...", hidden=True)
@@ -213,8 +215,11 @@ class Track:
         print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.youtube_url}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             try:
-                ydl.download([self.youtube_url])
-                print(f"[YTDL] Download of '{self.readable_name}' complete in {datetime.datetime.now() - start_time}s!")
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    ydl.download([self.youtube_url])
+                download_time = datetime.datetime.now() - start_time
+                print(f"[YTDL] Download of '{self.readable_name}' complete in {download_time.seconds}s!")
                 self.is_downloaded = True
             except youtube_dl.utils.DownloadError as err:
                 print(f"[YTDL] Download of $'{self.readable_name}' threw the following exception: {err.exc_info[1]}")
@@ -222,7 +227,7 @@ class Track:
             return self.is_downloaded
 
 
-    def playing_progress(self):
+    def playing_progress(self) -> str:
         progress = datetime.datetime.now() - self.started_playing_at
         seconds = progress.seconds
         return f"{(seconds // 60):02d}:{(seconds % 60):02d}"

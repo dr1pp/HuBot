@@ -60,7 +60,7 @@ class Utility(commands.Cog):
                        ])
     async def claim_role(self, ctx: SlashContext, role: discord.Role):
         await ctx.defer()
-        self.bot.db.execute("UPDATE UserData SET role_id = ? WHERE id = ", (role.id, ctx.author_id))
+        self.bot.db.execute("UPDATE UserData SET role_id = ? WHERE id = ?", (role.id, ctx.author_id))
         embed = discord.Embed(title="Role Claimed",
                               description=f"You have claimed {role.mention} as your colour role",
                               colour=role.colour)
