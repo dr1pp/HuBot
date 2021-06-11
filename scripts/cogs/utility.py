@@ -32,19 +32,10 @@ class Utility(commands.Cog):
                            create_option(name="colour",
                                          description="Hex code of the colour you would like to change your role to",
                                          option_type=SlashCommandOptionType.STRING,
-                                         required=True,
-                                         choices=[
-                                             create_choice(name="Red", value="de3c3c"),
-                                             create_choice(name="Orange", value="E67E22"),
-                                             create_choice(name="Yellow", value="F1C40F"),
-                                             create_choice(name="Green", value="2ECC71"),
-                                             create_choice(name="Blue", value="3498DB"),
-                                             create_choice(name="Purple", value="9B59B6"),
-                                             create_choice(name="Pink", value="de3cdb")
-                                         ])
+                                         required=True)
                        ])
     async def set_colour(self, ctx: SlashContext, colour: str):
-
+        await ctx.defer()
         if hex_string := get_valid_hex(colour):
             results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", ctx.author_id)
             if len(results) > 0:
@@ -65,12 +56,15 @@ class Utility(commands.Cog):
                                name="role",
                                description="The role you would like to claim",
                                option_type=SlashCommandOptionType.ROLE,
-                               required=True
-                           )])
+                               required=True)
+                       ])
     async def claim_role(self, ctx: SlashContext, role: discord.Role):
-        self.bot.db.execute("INSERT INTO UserData VALUES (?, ?)", (ctx.author_id, role.id))
-        await ctx.send(f":white_check_mark: You have claimed {role.mention} as your colour role",
-                       hidden=True)
+        await ctx.defer()
+        self.bot.db.execute("UPDATE UserData SET role_id = ? WHERE id = ", (role.id, ctx.author_id))
+        embed = discord.Embed(title="Role Claimed",
+                              description=f"You have claimed {role.mention} as your colour role",
+                              colour=role.colour)
+        await ctx.send(embed=embed, hidden=True)
 
 
     @cog_ext.cog_slash(name="reset_db",
@@ -101,18 +95,6 @@ def get_valid_hex(string: str):
         return None
 
 
-class CommandOptionType:
-    SUB_COMMAND = 1
-    SUB_COMMAND_GROUP = 2
-    STRING = 3
-    INTEGER = 4
-    BOOLEAN = 5
-    USER = 6
-    CHANNEL = 7
-    ROLE = 8
-    MENTIONABLE = 9
-
-
 class InteractiveMessage:
     def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
         self.bot = bot
@@ -120,6 +102,7 @@ class InteractiveMessage:
         self.embed = embed
         self.items = [[] * 5]
         self.timeout = None
+        self.message = None
 
 
     def add_button(self, row: int, button: components.Button, callback: callable, *args, **kwargs):
@@ -146,7 +129,6 @@ class InteractiveMessage:
                         for item in row:
                             if comp.id == item[0].id:
                                 await item[1](res, *item[2], **item[3])
-
 
             except asyncio.TimeoutError:
                 if self.timeout:

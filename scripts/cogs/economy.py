@@ -73,27 +73,20 @@ class Economy(commands.Cog):
                                description="The amount of money you would like to gift",
                                option_type=SlashCommandOptionType.INTEGER,
                                required=True,
-                               choices=[
-                                   create_choice(name="฿10", value=10),
-                                   create_choice(name="฿100", value=100),
-                                   create_choice(name="฿1,000", value=1000),
-                                   create_choice(name="฿10,000", value=10000),
-                                   create_choice(name="฿100,000", value=100000)
-                               ]
                            )
                        ])
-    async def gift(self, ctx, target: discord.User, amount: int):
+    async def gift(self, ctx: SlashContext, target: discord.User, amount: int):
         gifter = ctx.message.author
         if amount >= 1:
             if self.manager.can_afford(target, amount):
                 self.manager.give_money(target, amount)
                 self.manager.give_money(gifter, -amount)
-                await ctx.reply(
+                await ctx.send(
                     f":money_with_wings: **฿{amount}** sent to **{target.mention}**")
             else:
-                await ctx.reply(f":no_entry_sign: Your balance is too low to send **฿{amount}**")
+                await ctx.send(f":no_entry_sign: Your balance is too low to send **฿{amount}**", hidden=True)
         else:
-            await ctx.reply("You must gift at least **฿1**")
+            await ctx.send("You must gift at least **฿1**", hidden=True)
 
 
 class EconomyManager:
