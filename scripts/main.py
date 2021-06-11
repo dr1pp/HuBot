@@ -30,7 +30,8 @@ slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 bot.db = Database()
 bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     id INT NOT NULL PRIMARY KEY,
-                                                    money INT)""")
+                                                    money INT,
+                                                    role_id INT)""")
 
 
 if __name__ == "__main__":
