@@ -72,6 +72,10 @@ class Utility(commands.Cog):
             if confirmation_message.get_response():
                 self.bot.db.execute("DROP TABLE UserData")
                 await ctx.send(":warning: Database reset!")
+                self.bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
+                                                    id INT NOT NULL PRIMARY KEY,
+                                                    money INT,
+                                                    role_id INT)""")
         else:
             await ctx.send("You do not have the permissions to use this command")
 
