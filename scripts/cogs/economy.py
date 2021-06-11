@@ -21,7 +21,7 @@ class Economy(commands.Cog):
         self.manager.check_user_exists(user)
         balance = self.manager.balance(user)
         embed = discord.Embed(title="Balance :credit_card:",
-                              description=f"You have **฿{balance}** in your bank account",
+                              description=f"Your current balance is:\n**฿{balance}**",
                               colour=0xFEB242)
         await ctx.send(embed=embed, hidden=True)
 
@@ -76,7 +76,7 @@ class Economy(commands.Cog):
                            )
                        ])
     async def gift(self, ctx: SlashContext, target: discord.User, amount: int):
-        gifter = ctx.message.author
+        gifter = ctx.author
         if amount >= 1:
             if self.manager.can_afford(target, amount):
                 self.manager.give_money(target, amount)

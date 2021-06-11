@@ -59,10 +59,10 @@ class Radio(commands.Cog):
         if ctx.author.voice and ctx.author.voice.channel:
             self.channel = ctx.author.voice.channel
         else:
-            self.channel = ctx.message.guild.get_channel(838175571216564264)
+            self.channel = ctx.guild.get_channel(838175571216564264)
         print(f"[$JOIN] Target channel is {self.channel.name}")
 
-        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.message.guild)
+        self.voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if self.voice:
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
@@ -121,10 +121,12 @@ class Radio(commands.Cog):
                        description="Skip the current song playing on the radio",
                        guild_ids=[336950154189864961])
     async def skip(self, ctx: SlashContext):
+        await ctx.send(f"**{ctx.author.nick}** has skipped {self.current.readable_name}")
         self.voice.stop()
         if not self.next.is_downloaded:
             self.next.download()
         await self.play_track()
+
 
 
     @cog_ext.cog_slash(name="disconnect",
