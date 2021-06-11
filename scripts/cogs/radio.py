@@ -15,8 +15,6 @@ from discord.ext import commands
 from youtube_search import YoutubeSearch
 
 
-
-
 INTERMISSIONS_DIR = "./radio_sounds"
 
 
@@ -39,6 +37,7 @@ class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.current = None
+        self.channel = None
         print("[RADIO COG INIT] Creating initialization track")
         self.next = get_random_track()
         self.next.download()
@@ -77,23 +76,21 @@ class Radio(commands.Cog):
                 return
 
         print(f"[$JOIN] Target channel is {self.channel.name}")
+        embed = discord.Embed(title=":radio: Discord FM :radio:", colour=0x5DADEC)
         if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
             self.voice = voice
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
-            embed = discord.Embed(title="Discord FM",
-                                  description=f"Moved to {self.channel.mention}",
-                                  colour=0x5DADEC)
+            embed.description = f"Moved to {self.channel.mention}",
+
         else:
             print("[$JOIN] No voice client found in server, creating one")
             print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
-            embed = discord.Embed(title="Discord FM",
-                                  description=f"Joined {self.channel.mention}",
-                                  colour=0x5DADEC)
+            embed.description = f"Joined {self.channel.mention}"
             await self.play_track()
         await ctx.send(embed=embed)
 

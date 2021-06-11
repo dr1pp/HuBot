@@ -8,6 +8,7 @@ import discord_components as components
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
+from typing import Tuple
 
 
 CARD_NAMES = [
@@ -108,14 +109,14 @@ class SlotMachine:
 
         async def spin(ctx):
             if self.econ.can_afford(self.user, self.bet):
+                await ctx.respond(type=components.InteractionType.DeferredUpdateMessage)
                 await asyncio.sleep(4)
                 self.econ.give_money(self.user, -self.bet)
                 grid = self.generate_grid()
                 won, mult = self.check_win(grid)
                 winnings = int(self.bet * mult)
                 self.econ.give_money(self.user, winnings)
-                await ctx.respond(type=components.InteractionType.UpdateMessage,
-                                  embed=self.build_embed(grid, won, mult))
+                await ctx.message.edit(embed=self.build_embed(grid, won, mult))
             else:
                 await ctx.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
                 await asyncio.sleep(5)
@@ -140,13 +141,12 @@ class SlotMachine:
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
             await game.send_message(self.ctx)
-
         else:
             await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")
 
 
 
-    def check_win(self, grid):
+    def check_win(self, grid) -> Tuple[bool, float]:
         for symbol in self.values.keys():
             num = grid[1].count(symbol)
             if num > 1:
@@ -154,7 +154,7 @@ class SlotMachine:
         return False, 0
 
 
-    def generate_grid(self):
+    def generate_grid(self) -> list:
         grid = []
         for row in range(3):
             row = []
@@ -165,11 +165,11 @@ class SlotMachine:
         return grid
 
 
-    def build_embed(self, g, won, mult=0):
+    def build_embed(self, grid, won, mult: float = 0) -> discord.Embed:
         embed = discord.Embed(title="Slot Machine", description=f"Balance: **฿{self.econ.balance(self.user)}**")
-        embed.add_field(name=":black_large_square::one:", value=f":blue_square: {g[0][0]}\n:arrow_right: {g[1][0]}\n:blue_square: {g[2][0]}")
-        embed.add_field(name=":two:", value=f"{g[0][1]}\n{g[1][1]}\n{g[2][1]}")
-        embed.add_field(name=":three::black_large_square:", value=f"{g[0][2]} :blue_square:\n{g[1][2]} :arrow_left:\n{g[2][2]} :blue_square:")
+        embed.add_field(name=":black_large_square::one:", value=f":blue_square: {grid[0][0]}\n:arrow_right: {grid[1][0]}\n:blue_square: {grid[2][0]}")
+        embed.add_field(name=":two:", value=f"{grid[0][1]}\n{grid[1][1]}\n{grid[2][1]}")
+        embed.add_field(name=":three::black_large_square:", value=f"{grid[0][2]} :blue_square:\n{grid[1][2]} :arrow_left:\n{grid[2][2]} :blue_square:")
         if won is not None:
             if won:
                 if mult == 1.0:
@@ -235,14 +235,14 @@ class BlackJack:
             return values_string
 
 
-        def check_cards(self):
+        def check_cards(self) -> bool:
             if min(self.get_cards_values()) > 21:
                 self.playing = False
                 return False
             return True
 
 
-        def can_play(self):
+        def can_play(self) -> int:
             return max(self.get_cards_values()) < 17
 
 
