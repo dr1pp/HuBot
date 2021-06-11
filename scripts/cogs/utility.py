@@ -60,12 +60,13 @@ class Utility(commands.Cog):
     @cog_ext.cog_slash(name="claim_role",
                        description="Claim a role to use as your name colour",
                        guild_ids=[336950154189864961],
-                       options=[{
-                           "name": "role",
-                           "description": "The role you would like to claim",
-                           "option_type": 8,
-                           "required": True
-                       }])
+                       options=[
+                           create_option(
+                               name="role",
+                               description="The role you would like to claim",
+                               option_type=SlashCommandOptionType.ROLE,
+                               required=True
+                           )])
     async def claim_role(self, ctx: SlashContext, role: discord.Role):
         self.bot.db.execute("INSERT INTO UserData VALUES (?, ?)", (ctx.author_id, role.id))
         await ctx.send(f":white_check_mark: You have claimed {role.mention} as your colour role",
