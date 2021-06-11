@@ -16,7 +16,7 @@ class Economy(commands.Cog):
                        guild_ids=[336950154189864961],
                        )
     async def balance(self, ctx: SlashContext):
-        user = ctx.message.author
+        user = ctx.author
         self.manager.check_user_exists(user)
         balance = self.manager.balance(user)
         embed = discord.Embed(title="Balance", description=f"You have **฿{balance}** in your bank account")
