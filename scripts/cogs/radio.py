@@ -47,8 +47,16 @@ class Radio(commands.Cog):
 
     @cog_ext.cog_slash(name="join",
                        description="Summon the bot to play the radio in your current voice channel",
-                       guild_ids=[336950154189864961])
-    async def join(self, ctx: SlashContext):
+                       guild_ids=[336950154189864961],
+                       options=[
+                           create_option(
+                               name="channel",
+                               description="The voice channel for the bot to join",
+                               option_type=SlashCommandOptionType.CHANNEL,
+                               required=False
+                           )
+                       ])
+    async def join(self, ctx: SlashContext, channel: discord.VoiceChannel = None):
         await ctx.defer()
 
         if "next.mp3" not in os.listdir("./"):
@@ -56,13 +64,19 @@ class Radio(commands.Cog):
             self.next = get_random_track()
             async with ctx.channel.typing():
                 self.next.download()
-
-        if ctx.author.voice and ctx.author.voice.channel:
-            self.channel = ctx.author.voice.channel
+        if channel is None:
+            if ctx.author.voice and ctx.author.voice.channel:
+                self.channel = ctx.author.voice.channel
+            else:
+                self.channel = ctx.guild.get_channel(838175571216564264)
         else:
-            self.channel = ctx.guild.get_channel(838175571216564264)
-        print(f"[$JOIN] Target channel is {self.channel.name}")
+            if isinstance(channel, discord.VoiceChannel):
+                self.channel = channel
+            else:
+                await ctx.send(f"{channel.mention} is not a voice channel", hidden=True)
+                return
 
+        print(f"[$JOIN] Target channel is {self.channel.name}")
         if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
             self.voice = voice
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
