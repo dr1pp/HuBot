@@ -4,7 +4,9 @@ import re
 
 from discord.ext import commands
 import discord_components as components
-from discord_slash import cog_ext, SlashContext, model
+from discord_slash import cog_ext, SlashContext
+from discord_slash.model import SlashCommandOptionType
+from discord_slash.utils.manage_commands import create_option, create_choice
 
 
 class Utility(commands.Cog):
@@ -23,16 +25,25 @@ class Utility(commands.Cog):
         await ctx.send(f":recycle:  Purged **{len(deleted)}** bot related message(s)", delete_after=10)
 
 
-    @cog_ext.cog_slash(name="role_colour",
+    @cog_ext.cog_slash(name="set_colour",
                        description="Change your name colour",
                        guild_ids=[336950154189864961],
-                       options=[{
-                           "name": "colour",
-                           "description": "The hex code of the colour you would like your role to be",
-                           "option_type": 3,
-                           "required": True
-                       }])
-    async def role_colour(self, ctx: SlashContext, colour: str):
+                       options=[
+                           create_option(name="colour",
+                                         description="Hex code of the colour you would like to change your role to",
+                                         option_type=SlashCommandOptionType.STRING,
+                                         required=True,
+                                         choices=[
+                                             create_choice(name="Red", value="de3c3c"),
+                                             create_choice(name="Orange", value="E67E22"),
+                                             create_choice(name="Yellow", value="F1C40F"),
+                                             create_choice(name="Green", value="2ECC71"),
+                                             create_choice(name="Blue", value="3498DB"),
+                                             create_choice(name="Purple", value="9B59B6"),
+                                             create_choice(name="Pink", value="de3cdb")
+                                         ])
+                       ])
+    async def set_colour(self, ctx: SlashContext, colour: str):
 
         if hex_string := get_valid_hex(colour):
             results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", ctx.author_id)

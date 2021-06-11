@@ -31,7 +31,7 @@ bot.db = Database()
 bot.db.execute("""CREATE TABLE IF NOT EXISTS UserData (
                                                     id INT NOT NULL PRIMARY KEY,
                                                     money INT,
-                                                    role_id INT)""")
+                                                    role_id INT DEFAULT NULL)""")
 
 
 if __name__ == "__main__":
