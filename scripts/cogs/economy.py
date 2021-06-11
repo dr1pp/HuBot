@@ -95,9 +95,9 @@ class EconomyManager:
         self.db = self.bot.db
 
 
-    def balance(self, user: discord.User):
-        id = self.check_user_exists(user)
-        results = self.db.get("SELECT money FROM UserData WHERE id = ?", (id,))
+    def balance(self, user: discord.User) -> int:
+        user_id = self.check_user_exists(user)
+        results = self.db.get("SELECT money FROM UserData WHERE id = ?", (user_id,))
         balance = int(results[0][0])
         return balance
 
@@ -106,7 +106,7 @@ class EconomyManager:
         self.db.execute("INSERT INTO UserData VALUES (?, 100, NULL)", (user.id,))
 
 
-    def check_user_exists(self, user: discord.User):
+    def check_user_exists(self, user: discord.User) -> int:
         results = self.db.get("SELECT * FROM UserData WHERE id = ?", (user.id,))
         if len(results) == 0:
             self.enlist_user(user)
@@ -114,15 +114,13 @@ class EconomyManager:
 
 
     def give_money(self, user: discord.User, amount: int):
-        id = self.check_user_exists(user)
+        user_id = self.check_user_exists(user)
         current = self.balance(user)
-        self.db.execute("UPDATE UserData SET money = ? WHERE id = ?", (current + amount, id))
+        self.db.execute("UPDATE UserData SET money = ? WHERE id = ?", (current + amount, user_id))
 
 
-    def can_afford(self, user: discord.User, amount: int):
+    def can_afford(self, user: discord.User, amount: int) -> bool:
         return self.balance(user) >= amount
-
-
 
 
 def setup(bot):
