@@ -82,7 +82,7 @@ class Radio(commands.Cog):
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
-            embed.description = f"Moved to {self.channel.mention}",
+            embed.description = f"Moved to {self.channel.mention}"
 
         else:
             print("[$JOIN] No voice client found in server, creating one")
