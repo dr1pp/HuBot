@@ -3,7 +3,8 @@ import sqlite3
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
-import discord_slash.utils
+from discord_slash.model import SlashCommandOptionType
+from discord_slash.utils.manage_commands import create_option, create_choice
 
 
 class Economy(commands.Cog):
@@ -27,7 +28,28 @@ class Economy(commands.Cog):
 
     @cog_ext.cog_slash(name="givemoney",
                        description="[ADMIN] Give a user money",
-                       guild_ids=[336950154189864961])
+                       guild_ids=[336950154189864961],
+                       options=[
+                           create_option(
+                               name="user",
+                               description="The user you would like to give money to",
+                               option_type=SlashCommandOptionType.USER,
+                               required=True
+                           ),
+                           create_option(
+                               name="amount",
+                               description="The amount of money you would like to give to the user",
+                               option_type=SlashCommandOptionType.INTEGER,
+                               required=True,
+                               choices=[
+                                   create_choice(name="฿10", value=10),
+                                   create_choice(name="฿100", value=100),
+                                   create_choice(name="฿1,000", value=1000),
+                                   create_choice(name="฿10,000", value=10000),
+                                   create_choice(name="฿100,000", value=100000)
+                               ]
+                           )
+                       ])
     async def givemoney(self, ctx: SlashContext, user: discord.User, amount: int):
         if ctx.author == self.bot.me:
             self.manager.give_money(user, amount)
@@ -36,7 +58,30 @@ class Economy(commands.Cog):
             await ctx.send(f":no_entry_sign: You cannot use this command.", hidden=True)
 
 
-    @commands.command()
+    @cog_ext.cog_slash(name="gift",
+                       description="Gift another user some of your money",
+                       guild_ids=[336950154189864961],
+                       options=[
+                           create_option(
+                               name="target",
+                               description="The user you would like to gift money to",
+                               option_type=SlashCommandOptionType.USER,
+                               required=True
+                           ),
+                           create_option(
+                               name="amount",
+                               description="The amount of money you would like to gift",
+                               option_type=SlashCommandOptionType.INTEGER,
+                               required=True,
+                               choices=[
+                                   create_choice(name="฿10", value=10),
+                                   create_choice(name="฿100", value=100),
+                                   create_choice(name="฿1,000", value=1000),
+                                   create_choice(name="฿10,000", value=10000),
+                                   create_choice(name="฿100,000", value=100000)
+                               ]
+                           )
+                       ])
     async def gift(self, ctx, target: discord.User, amount: int):
         gifter = ctx.message.author
         if amount >= 1:
@@ -49,7 +94,6 @@ class Economy(commands.Cog):
                 await ctx.reply(f":no_entry_sign: Your balance is too low to send **฿{amount}**")
         else:
             await ctx.reply("You must gift at least **฿1**")
-
 
 
 class EconomyManager:
