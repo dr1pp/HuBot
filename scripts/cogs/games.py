@@ -117,8 +117,7 @@ class SlotMachine:
                 await ctx.respond(type=components.InteractionType.UpdateMessage,
                                   embed=self.build_embed(grid, won, mult))
             else:
-                await ctx.respond(type=components.InteractionType.ChannelMessageWithSource,
-                                  content=f"You cannot afford to put **฿{self.bet}** into this machine")
+                await ctx.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
                 await asyncio.sleep(5)
                 await ctx.message.delete()
 
@@ -130,7 +129,6 @@ class SlotMachine:
         async def change_bet(ctx):
             pass
 
-        await self.ctx.respond(typ=components.InteractionType.DeferredUpdateMessage)
         if self.econ.can_afford(self.user, self.bet):
             self.econ.give_money(self.user, -self.bet)
             grid = self.generate_grid()

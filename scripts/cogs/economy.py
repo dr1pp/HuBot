@@ -2,6 +2,7 @@ import discord
 import sqlite3
 
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
 
 
 class Economy(commands.Cog):
