@@ -3,6 +3,7 @@ import sqlite3
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
+import discord_slash.utils
 
 
 class Economy(commands.Cog):
@@ -13,8 +14,7 @@ class Economy(commands.Cog):
 
     @cog_ext.cog_slash(name="balance",
                        description="Check your bank balance",
-                       guild_ids=[336950154189864961],
-                       )
+                       guild_ids=[336950154189864961])
     async def balance(self, ctx: SlashContext):
         user = ctx.author
         self.manager.check_user_exists(user)
@@ -25,13 +25,15 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed, hidden=True)
 
 
-    @commands.command()
-    async def givecash(self, ctx, target: discord.User, amount: int):
-        if ctx.message.author == self.bot.me:
-            self.manager.give_money(target, amount)
-            await ctx.reply(f"**฿{amount}** given to {target.mention}")
+    @cog_ext.cog_slash(name="givemoney",
+                       description="[ADMIN] Give a user money",
+                       guild_ids=[336950154189864961])
+    async def givemoney(self, ctx: SlashContext, user: discord.User, amount: int):
+        if ctx.author == self.bot.me:
+            self.manager.give_money(user, amount)
+            await ctx.send(f":shushing_face: **฿{amount}** given to **{user.nick}**", hidden=True)
         else:
-            await ctx.reply(f"You cannot use this command")
+            await ctx.send(f":no_entry_sign: You cannot use this command.", hidden=True)
 
 
     @commands.command()
