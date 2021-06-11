@@ -49,6 +49,7 @@ class Radio(commands.Cog):
                        description="Summon the bot to play the radio in your current voice channel",
                        guild_ids=[336950154189864961])
     async def join(self, ctx: SlashContext):
+        await ctx.defer()
 
         if "next.mp3" not in os.listdir("./"):
             print("[$JOIN] Creating initial track")
@@ -67,12 +68,14 @@ class Radio(commands.Cog):
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
             print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
+            await ctx.send(f":musical_note: Moved to {self.channel.mention}")
         else:
             print("[$JOIN] No voice client found in server, creating one")
             print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
+            await ctx.send(f":musical_note: Joined {self.channel.mention}")
             await self.play_track()
 
 
@@ -121,7 +124,7 @@ class Radio(commands.Cog):
                        description="Skip the current song playing on the radio",
                        guild_ids=[336950154189864961])
     async def skip(self, ctx: SlashContext):
-        await ctx.send(f"**{ctx.author.nick}** has skipped {self.current.readable_name}")
+        await ctx.send(f":track_next: skipped **{self.current.readable_name}**")
         self.voice.stop()
         if not self.next.is_downloaded:
             self.next.download()
@@ -133,14 +136,16 @@ class Radio(commands.Cog):
                        description="Disconnect the bot from voice",
                        guild_ids=[336950154189864961])
     async def disconnect(self, ctx: SlashContext):
+        await ctx.defer()
         if ctx.author.voice and ctx.author.voice.channel:
             if self.voice.is_connected():
                 self.voice.stop()
                 await self.voice.disconnect()
+                await ctx.send(f":no_mobile_phones: Disconnected from **{self.voice.channel.mention}**")
                 print("[DISCONNECT] Bot disconnected from voice")
                 self.next = get_random_track()
             else:
-                await ctx.send("The bot is not connected to a voice channel")
+                await ctx.send("The bot is not connected to a voice channel", hidden=True, delete_after=5)
 
 
     @cog_ext.cog_slash(name="playlist",
