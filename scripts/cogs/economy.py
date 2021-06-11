@@ -19,7 +19,9 @@ class Economy(commands.Cog):
         user = ctx.author
         self.manager.check_user_exists(user)
         balance = self.manager.balance(user)
-        embed = discord.Embed(title="Balance", description=f"You have **฿{balance}** in your bank account")
+        embed = discord.Embed(title="Balance :credit_card:",
+                              description=f"You have **฿{balance}** in your bank account",
+                              colour=0xFEB242)
         await ctx.send(embed=embed, hidden=True)
 
 
