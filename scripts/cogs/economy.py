@@ -10,13 +10,17 @@ class Economy(commands.Cog):
         self.bot = bot
         self.manager = EconomyManager(self.bot)
 
-    @commands.command("balance",
-                      aliases=["bank", "money", "cash"])
-    async def balance(self, ctx):
+
+    @cog_ext.cog_slash(name="balance",
+                       description="Check your bank balance",
+                       guild_ids=[336950154189864961],
+                       )
+    async def balance(self, ctx: SlashContext):
         user = ctx.message.author
         self.manager.check_user_exists(user)
         balance = self.manager.balance(user)
-        await ctx.reply(f":credit_card: You have **฿{balance}** in your bank account")
+        embed = discord.Embed(title="Balance", description="You have **฿{balance}** in your bank account")
+        await ctx.send(embed=embed, hidden=True)
 
 
     @commands.command()
