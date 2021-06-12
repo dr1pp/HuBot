@@ -114,7 +114,8 @@ class Timer:
         print(f"{self.operation_str} started!")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(f"{self.operation_str} completed in {(datetime.datetime.now() - self.start_time).seconds} seconds!")
+        total_time = datetime.datetime.now() - self.start_time
+        print(f"{self.operation_str} completed in {total_time.seconds}.{str(total_time.microseconds)[:3]} seconds!")
 
 
 class InteractiveMessage:

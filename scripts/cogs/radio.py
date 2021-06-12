@@ -173,7 +173,7 @@ class Track:
                                       SpotifyUser(spotify.user(track_data['added_by']['id'])))
 
             self.urls = self.Media(self.data['external_urls']['spotify'],
-                                   "https://www.youtube.com{self.youtube_data['url_suffix']}",
+                                   f"https://www.youtube.com{self.youtube_data['url_suffix']}",
                                    self.data['album']['images'][1]['url'])
 
 
