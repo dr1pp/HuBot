@@ -2,14 +2,12 @@ import discord
 import asyncio
 import re
 import datetime
-import inspect
 
 from discord.ext import commands
 import discord_components as components
 from discord_slash import cog_ext, SlashContext
 from discord_slash.model import SlashCommandOptionType
 from discord_slash.utils.manage_commands import create_option, create_choice
-from collections import namedtuple
 
 
 class Utility(commands.Cog):
@@ -85,7 +83,7 @@ class Utility(commands.Cog):
         await ctx.defer()
         if ctx.author == self.bot.me:
             confirmation_message = ConfirmationMessage(self.bot, ctx,
-                                                       content = "Are you sure you would like to reset the Database?")
+                                                       content="Are you sure you would like to reset the Database?")
             if confirmation_message.get_response():
                 self.bot.db.execute("DROP TABLE UserData")
                 await ctx.send(":warning: Database reset!")

@@ -4,8 +4,8 @@ import spotipy as sp
 import youtube_dl
 import os
 import asyncio
-import warnings
 import datetime
+import cogs.utility as util
 
 from discord_slash import cog_ext, SlashContext
 from discord_slash.model import SlashCommandOptionType
@@ -15,8 +15,6 @@ from discord.ext import commands
 from youtube_search import YoutubeSearch
 from contextlib import suppress
 from collections import namedtuple
-
-import utility
 
 
 INTERMISSIONS_DIR = "./radio_sounds"
@@ -140,17 +138,17 @@ class Radio(commands.Cog):
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.urls.cover)
                 embed.set_footer(text=f"Added by: {self.current.info.added_by.name}", icon_url=self.current.info.added_by.image_url)
-                embed.add_field(name="Length", value=self.current.info.duration, inline=True)
+                embed.add_field(name="Length",
+                                value=self.current.info.duration, inline=True)
                 embed.add_field(name="Progress", value=self.current.playing_progress(), inline=True)
                 embed.add_field(name="In", value=self.voice.channel.name, inline=False)
-                embed.add_field(name="Up Next", value=f"[{self.current.next.readable_name}]({self.current.next.urls.spotify})", inline=False)  # TODO: Add time remaining to embed
+                embed.add_field(name="Up Next",
+                                value=f"[{self.current.next.readable_name}]({self.current.next.urls.spotify})",
+                                inline=False)
                 await ctx.send(embed=embed, hidden=True)
                 sent = True
             except AttributeError:
-                if not searching_message_sent:
-                    searching_message = await ctx.send("🔎 Searching for song data, please wait...", hidden=True)
-                    searching_message_sent = True
-                    await asyncio.sleep(3)
+                pass
 
 
 class Track:
@@ -160,12 +158,12 @@ class Track:
 
     def __init__(self, track_data):
         self.data = track_data['track']
-        with utility.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
+        with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
 
-            with utility.Timer(f"[TRACK INIT] YouTube data extraction for '{self.data['name']}'"):
+            with util.Timer(f"[TRACK INIT] YouTube data extraction for '{self.data['name']}'"):
                 self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
 
-            with utility.Timer(f"[TRACK INIT] Spotify data extraction for '{self.data['name']}'"):
+            with util.Timer(f"[TRACK INIT] Spotify data extraction for '{self.data['name']}'"):
                 self.info = self.Info(self.data['name'],
                                       self.data['album']['artists'][0]['name'],
                                       self.youtube_data['duration'],
@@ -224,7 +222,7 @@ class Track:
         print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.urls.youtube}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             try:
-                with utility.Timer(f"[YTDL] Download of '{self.readable_name}'"):
+                with util.Timer(f"[YTDL] Download of '{self.readable_name}'"):
                     with suppress(NotADirectoryError):
                         ydl.download([self.urls.youtube])
                 self.is_downloaded = True
