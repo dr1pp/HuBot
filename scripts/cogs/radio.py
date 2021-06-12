@@ -190,7 +190,7 @@ class Track:
             self.next = None
 
 
-    async def play(self, voice: discord.VoiceProtocol, next: 'Track'):
+    async def play(self, voice, next: 'Track'):
         self.next = next
         self.radio.next = next
         os.rename("next.mp3", "song.mp3")
@@ -206,13 +206,13 @@ class Track:
             await self.next.play(voice, get_random_track())
 
 
-    async def skip(self, voice: discord.VoiceProtocol):
-        await voice.stop()
+    async def skip(self, voice):
+        voice.stop()
         self.skipped = True
         self.next.play(voice, get_random_track(self.bot))
 
 
-    async def play_intermission(self, voice: discord.VoiceProtocol):
+    async def play_intermission(self, voice):
 
         def get_intermission():
             if rand.randint(0,5) == 0:
