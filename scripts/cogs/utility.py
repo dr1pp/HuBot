@@ -14,8 +14,16 @@ class Utility(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(pass_context=True)
-    async def clear(self, ctx, limit: int):
+    @cog_ext.cog_slash(name="cleanup",
+                       description="Clean up chat messages from the current channel",
+                       guild_ids=[336950154189864961],
+                       options=[
+                           create_option(name="limit",
+                                         description="How many messages you would like to scan through",
+                                         option_type=SlashCommandOptionType.INTEGER,
+                                         required=False)
+                       ])
+    async def cleanup(self, ctx, limit: int):
 
         def is_bot(m):
             return m.author == self.bot.user or m.content.startswith(self.bot.command_prefix)
