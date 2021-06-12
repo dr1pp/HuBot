@@ -24,6 +24,7 @@ PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 ydl_ops = {
         'no_warnings': True,
+        'quiet': True,
         'format': 'bestaudio/best',
         'outtmpl': 'next.%(ext)s',
         'postprocessors': [{
@@ -148,7 +149,7 @@ class Radio(commands.Cog):
                 await ctx.send(embed=embed, hidden=True)
                 sent = True
             except AttributeError:
-                pass
+                await ctx.send(":mag_right: Finding next song info, please wait", hidden=True)
 
 
 def setup(bot):
