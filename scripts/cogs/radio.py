@@ -120,20 +120,21 @@ class Radio(commands.Cog):
 
 
     async def play_intermission(self):
+
         def get_intermission():
             names = os.listdir(INTERMISSIONS_DIR)
             if rand.randint(0, 5) == 0:
                 return rand.choice(names)
             return None
 
-
-        intermission = get_intermission()
-        if intermission:
-            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
-            self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"),
-                            after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
-        else:
-            await self.play_track()
+        if not self.current.skipped:
+            intermission = get_intermission()
+            if intermission:
+                print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
+                self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"),
+                                after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
+            else:
+                await self.play_track()
 
 
     @cog_ext.cog_slash(name="skip",
@@ -142,6 +143,7 @@ class Radio(commands.Cog):
     async def skip(self, ctx: SlashContext):
         await ctx.send(f":track_next: skipped **{self.current.readable_name}**")
         self.voice.stop()
+        self.current.skipped = True
         if not self.next.is_downloaded:
             self.next.download()
         await self.play_track()
@@ -218,6 +220,7 @@ class Track:
         self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
         self.is_downloaded = False
         self.started_playing_at = None
+        self.skipped = False
         print(f"[TRACK INIT] Found Spotify Data for '{self.added_by.name}' in {datetime.datetime.now() - start}")
         print("[TRACK INIT] Initialisation complete!")
 
