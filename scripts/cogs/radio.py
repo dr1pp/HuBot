@@ -213,7 +213,7 @@ class Track:
     async def skip(self, voice):
         voice.stop()
         self.skipped = True
-        self.next.play(voice, get_random_track())
+        self.next.play(voice, get_random_track(self.radio))
 
 
     async def play_intermission(self, voice):
