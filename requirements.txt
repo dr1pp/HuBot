@@ -1,7 +1,7 @@
 discord.py
 PyNaCl
 spotipy
-youtube-dl==2021.4.26
+youtube-dl
 youtube-search
 discord-components
 discord-py-slash-command
