@@ -235,7 +235,7 @@ class Track:
 
 
     def readable_time_to_seconds(self, time_string: str) -> int:
-        (m, s) = time_string.split(":")
+        (m, s) = map(int, time_string.split(":"))
         return (m * 60) + s
 
 
