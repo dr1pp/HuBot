@@ -28,7 +28,7 @@ ydl_ops = {
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '192'
+            'preferredquality': '128'
         }]
     }
 
