@@ -91,7 +91,7 @@ class Radio(commands.Cog):
             embed.add_field(name="**Joined**", value=self.channel.mention)
             await ctx.send(embed=embed)
             self.playing = True
-            await self.current.play(self.voice, get_random_track())
+            await self.current.play(self.voice)
 
 
     @cog_ext.cog_slash(name="skip",
