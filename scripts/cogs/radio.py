@@ -35,6 +35,7 @@ ydl_ops = {
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
+
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -42,7 +43,7 @@ class Radio(commands.Cog):
         self.channel = None
         self.playing = False
         print("[RADIO COG INIT] Creating initialization track")
-        self.current = get_random_track()
+        self.current = get_random_track(self.bot)
         self.current.download()
         print("[RADIO COG INIT] Initialization track created")
 
@@ -90,14 +91,14 @@ class Radio(commands.Cog):
             embed.add_field(name="**Joined**", value=self.channel.mention)
             await ctx.send(embed=embed)
             self.playing = True
-            await self.current.play(self.voice, get_random_track())
+            await self.current.play(self.voice, get_random_track(self.bot))
 
 
     @cog_ext.cog_slash(name="skip",
                        description="Skip the current song playing on the radio",
                        guild_ids=[336950154189864961])
     async def skip(self, ctx: SlashContext):
-        await ctx.send(f":track_next: skipped **{self.current.readable_name}**")
+        await ctx.send(f":track_next: Skipped **{self.current.readable_name}**")
         await self.current.skip(self.voice)
 
 
@@ -128,7 +129,6 @@ class Radio(commands.Cog):
                        description="Show the song currently playing on the radio")
     async def now_playing(self, ctx: SlashContext):
         await ctx.defer()
-        searching_message_sent = False
         sent = False
         while not sent:
             try:
@@ -203,7 +203,7 @@ class Track:
         print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
         await self.play_intermission(voice)
         if not self.skipped:
-            await self.next.play(voice, get_random_track())
+            await self.next.play(voice, get_random_track(self.bot))
 
 
     async def skip(self, voice):
