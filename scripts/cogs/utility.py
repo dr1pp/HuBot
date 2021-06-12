@@ -1,12 +1,15 @@
 import discord
 import asyncio
 import re
+import datetime
+import inspect
 
 from discord.ext import commands
 import discord_components as components
 from discord_slash import cog_ext, SlashContext
 from discord_slash.model import SlashCommandOptionType
 from discord_slash.utils.manage_commands import create_option, create_choice
+from collections import namedtuple
 
 
 class Utility(commands.Cog):
@@ -101,6 +104,19 @@ def get_valid_hex(string: str):
         return int(hex(sixteen_int_hex), 0)
     else:
         return None
+
+
+class Timer:
+    def __init__(self, operation_str: str):
+        self.operation_str = operation_str
+        self.start_time = None
+
+    def __enter__(self):
+        self.start_time = datetime.datetime.now()
+        print(f"{self.operation_str} started!")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(f"{self.operation_str} completed in {(datetime.datetime.now() - self.start_time).seconds} seconds!")
 
 
 class InteractiveMessage:

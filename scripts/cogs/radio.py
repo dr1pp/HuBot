@@ -13,6 +13,10 @@ from discord_slash.utils.manage_commands import create_option, create_choice
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from youtube_search import YoutubeSearch
+from contextlib import suppress
+from collections import namedtuple
+
+import utility
 
 
 INTERMISSIONS_DIR = "./radio_sounds"
@@ -38,9 +42,10 @@ class Radio(commands.Cog):
         self.bot = bot
         self.current = None
         self.channel = None
+        self.playing = False
         print("[RADIO COG INIT] Creating initialization track")
-        self.next = get_random_track()
-        self.next.download()
+        self.current = get_random_track()
+        self.current.download()
         print("[RADIO COG INIT] Initialization track created")
 
 
@@ -57,12 +62,6 @@ class Radio(commands.Cog):
                        ])
     async def join(self, ctx: SlashContext, channel: discord.VoiceChannel = None):
         await ctx.defer()
-
-        if "next.mp3" not in os.listdir("./"):
-            print("[$JOIN] Creating initial track")
-            self.next = get_random_track()
-            async with ctx.channel.typing():
-                self.next.download()
         if channel is None:
             if ctx.author.voice and ctx.author.voice.channel:
                 self.channel = ctx.author.voice.channel
@@ -92,49 +91,8 @@ class Radio(commands.Cog):
                 await self.channel.connect()
             embed.add_field(name="**Joined**", value=self.channel.mention)
             await ctx.send(embed=embed)
-            await self.play_track()
-
-
-
-    async def play_track(self):
-
-        if "song.mp3" in os.listdir("./"):
-            os.remove("song.mp3")
-            print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.current.readable_name}'")
-        os.rename("next.mp3", "song.mp3")
-        self.current = self.next
-        print(f"[PLAY_TRACK] Renamed file for '{self.current.readable_name}'")
-        self.voice.play(discord.FFmpegPCMAudio("song.mp3"),
-                        after=lambda e: asyncio.run_coroutine_threadsafe(self.play_intermission(), self.bot.loop))
-        self.current.started_playing_at = datetime.datetime.now()
-        print(f"[PLAY_TRACK] Now playing '{self.current.readable_name}'")
-        self.next = get_random_track()
-        next_track_downloaded = False
-        while not next_track_downloaded:
-            if self.next.download():
-                next_track_downloaded = True
-            else:
-                print(f"[PLAY_TRACK] Download of '{self.next.readable_name}' failed, attempting to download new track")
-                self.next = get_random_track()
-        return
-
-
-    async def play_intermission(self):
-
-        def get_intermission():
-            names = os.listdir(INTERMISSIONS_DIR)
-            if rand.randint(0, 5) == 0:
-                return rand.choice(names)
-            return None
-
-        if not self.current.skipped:
-            intermission = get_intermission()
-            if intermission:
-                print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
-                self.voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"),
-                                after=lambda e: asyncio.run_coroutine_threadsafe(self.play_track(), self.bot.loop))
-            else:
-                await self.play_track()
+            self.playing = True
+            await self.current.play(self.voice, get_random_track())
 
 
     @cog_ext.cog_slash(name="skip",
@@ -142,12 +100,7 @@ class Radio(commands.Cog):
                        guild_ids=[336950154189864961])
     async def skip(self, ctx: SlashContext):
         await ctx.send(f":track_next: skipped **{self.current.readable_name}**")
-        self.voice.stop()
-        self.current.skipped = True
-        if not self.next.is_downloaded:
-            self.next.download()
-        await self.play_track()
-
+        await self.current.skip(self.voice)
 
 
     @cog_ext.cog_slash(name="disconnect",
@@ -158,12 +111,12 @@ class Radio(commands.Cog):
         if ctx.author.voice and ctx.author.voice.channel:
             if self.voice.is_connected():
                 self.voice.stop()
+                self.playing = False
                 await self.voice.disconnect()
                 await ctx.send(f":no_mobile_phones: Disconnected from **{self.voice.channel.mention}**")
                 print("[DISCONNECT] Bot disconnected from voice")
-                self.next = get_random_track()
             else:
-                await ctx.send("The bot is not connected to a voice channel", hidden=True)
+                await ctx.send(":face_with_raised_eyebrow: The bot is not connected to a voice channel", hidden=True)
 
 
     @cog_ext.cog_slash(name="playlist",
@@ -182,15 +135,15 @@ class Radio(commands.Cog):
         while not sent:
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
-                                      url=self.current.spotify_url,
-                                      description=f"<:youtube:847561221514985502> [Source]({self.current.youtube_url})",
+                                      url=self.current.urls.spotify,
+                                      description=f"<:youtube:847561221514985502> [Source]({self.current.urls.youtube})",
                                       colour=discord.Colour(0x1DB954))
-                embed.set_thumbnail(url=self.current.album_cover_url)
-                embed.set_footer(text=f"Added by: {self.current.added_by.name}", icon_url=self.current.added_by.image_url)
-                embed.add_field(name="Length", value=self.current.duration, inline=True)
+                embed.set_thumbnail(url=self.current.urls.cover)
+                embed.set_footer(text=f"Added by: {self.current.info.added_by.name}", icon_url=self.current.info.added_by.image_url)
+                embed.add_field(name="Length", value=self.current.info.duration, inline=True)
                 embed.add_field(name="Progress", value=self.current.playing_progress(), inline=True)
                 embed.add_field(name="In", value=self.voice.channel.name, inline=False)
-                embed.add_field(name="Up Next", value=f"[{self.next.readable_name}]({self.next.spotify_url})", inline=False)  # TODO: Add time remaining to embed
+                embed.add_field(name="Up Next", value=f"[{self.current.next.readable_name}]({self.current.next.urls.spotify})", inline=False)  # TODO: Add time remaining to embed
                 await ctx.send(embed=embed, hidden=True)
                 sent = True
             except AttributeError:
@@ -202,44 +155,88 @@ class Radio(commands.Cog):
 
 class Track:
 
+    Info = namedtuple("Info", "title artist duration duration_s added_by")
+    Media = namedtuple("Media", "spotify youtube cover")
+
     def __init__(self, track_data):
-        self.data = track_data
-        self.title = self.data['track']['name']
-        self.artist = self.data['track']['album']['artists'][0]['name']
-        self.readable_name = f"{self.artist} - {self.title}"
-        self.spotify_url = self.data['track']['external_urls']['spotify']
-        start = datetime.datetime.now()
-        self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
-        print(f"[TRACK INIT] Found YouTube data for '{self.readable_name}' in {datetime.datetime.now() - start}s")
-        self.youtube_url = f"https://www.youtube.com{self.youtube_data['url_suffix']}"
-        self.duration = self.youtube_data['duration']
-        if len(self.duration) % 2 == 0 and not self.duration.startswith("0"):
-            self.duration = "0" + self.duration
-        self.album_cover_url = self.data['track']['album']['images'][1]['url']
-        start = datetime.datetime.now()
-        self.added_by = SpotifyUser(spotify.user(self.data['added_by']['id']))
-        self.is_downloaded = False
-        self.started_playing_at = None
-        self.skipped = False
-        print(f"[TRACK INIT] Found Spotify Data for '{self.added_by.name}' in {datetime.datetime.now() - start}")
-        print("[TRACK INIT] Initialisation complete!")
+        self.data = track_data['track']
+        with utility.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
+
+            with utility.Timer(f"[TRACK INIT] YouTube data extraction for '{self.data['name']}'"):
+                self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
+
+            with utility.Timer(f"[TRACK INIT] Spotify data extraction for '{self.data['name']}'"):
+                self.info = self.Info(self.data['name'],
+                                      self.data['album']['artists'][0]['name'],
+                                      self.youtube_data['duration'],
+                                      self.readable_time_to_seconds(),
+                                      SpotifyUser(spotify.user(track_data['added_by']['id'])))
+
+            self.urls = self.Media(self.data['external_urls']['spotify'],
+                                   "https://www.youtube.com{self.youtube_data['url_suffix']}",
+                                   self.data['album']['images'][1]['url'])
+
+            self.readable_name = f"{self.info.artist} - {self.info.title}"
+            self.readable_duration = self.info.duration
+            if len(self.readable_duration) % 2 == 0 and not self.readable_duration.startswith("0"):
+                self.readable_duration = "0" + self.readable_duration
+            self.is_downloaded = False
+            self.started_playing_at = None
+            self.skipped = False
+            self.next = None
 
 
-    def download(self) -> bool:
+    async def play(self, voice: discord.VoiceProtocol, next: 'Track'):
+        self.next = next
+        voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        self.started_playing_at = datetime.datetime.now()
+        print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
+        next.download()
+        await asyncio.sleep(self.info.duration_s)
+        os.remove("song.mp3")
+        print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
+        os.rename("next.mp3", "song.mp3")
+        await self.play_intermission(voice)
+        if not self.skipped:
+            await self.next.play(voice, get_random_track())
+
+
+    async def skip(self, voice: discord.VoiceProtocol):
+        await voice.stop()
+        self.skipped = True
+        self.next.play(voice, get_random_track())
+
+
+    async def play_intermission(self, voice: discord.VoiceProtocol):
+
+        def get_intermission():
+            if rand.randint(0,5) == 0:
+                return rand.choice(os.listdir(INTERMISSIONS_DIR))
+            return None
+
+        if intermission := get_intermission():
+            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
+            voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"))
+
+
+    def download(self) -> datetime.timedelta:
         start_time = datetime.datetime.now()
-        print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.youtube_url}")
+        print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.urls.youtube}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             try:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    ydl.download([self.youtube_url])
-                download_time = datetime.datetime.now() - start_time
-                print(f"[YTDL] Download of '{self.readable_name}' complete in {download_time.seconds}s!")
+                with utility.Timer(f"[YTDL] Download of '{self.readable_name}'"):
+                    with suppress(NotADirectoryError):
+                        ydl.download([self.urls.youtube])
                 self.is_downloaded = True
             except youtube_dl.utils.DownloadError as err:
-                print(f"[YTDL] Download of $'{self.readable_name}' threw the following exception: {err.exc_info[1]}")
+                print(f"[YTDL] Download of '{self.readable_name}' threw the following exception: {err.exc_info[1]}")
                 self.is_downloaded = False
-            return self.is_downloaded
+            return datetime.datetime.now() - start_time
+
+
+    def readable_time_to_seconds(self) -> int:
+        (m, s) = self.info.duration.split(":")
+        return (m * 60) + s
 
 
     def playing_progress(self) -> str:
