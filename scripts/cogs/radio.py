@@ -180,7 +180,7 @@ class Track:
             self.readable_duration = self.info.duration
             if len(self.readable_duration) % 2 == 0 and not self.readable_duration.startswith("0"):
                 self.readable_duration = "0" + self.readable_duration
-            self.next = get_random_track()
+            self.next = None
             self.is_downloaded = False
             self.started_playing_at = None
             self.skipped = False
@@ -188,6 +188,7 @@ class Track:
 
 
     async def play(self, voice):
+        self.next = get_random_track()
         os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
