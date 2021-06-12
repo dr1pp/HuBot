@@ -160,6 +160,8 @@ class Track:
         self.data = track_data['track']
         with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
 
+            self.readable_name = f"{self.data['album']['artists'][0]['name']} - {self.data['name']}"
+
             with util.Timer(f"[TRACK INIT] YouTube data extraction for '{self.data['name']}'"):
                 self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
 
@@ -174,7 +176,7 @@ class Track:
                                    "https://www.youtube.com{self.youtube_data['url_suffix']}",
                                    self.data['album']['images'][1]['url'])
 
-            self.readable_name = f"{self.info.artist} - {self.info.title}"
+
             self.readable_duration = self.info.duration
             if len(self.readable_duration) % 2 == 0 and not self.readable_duration.startswith("0"):
                 self.readable_duration = "0" + self.readable_duration
