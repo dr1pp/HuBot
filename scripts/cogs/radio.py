@@ -156,11 +156,7 @@ class Track:
     Info = namedtuple("Info", "title artist duration duration_s added_by")
     Media = namedtuple("Media", "spotify youtube cover")
 
-    def __init__(self, bot, track_data):
-        self.bot = bot
-        self.radio = self.bot.get_cog("Radio")
-        self.radio.current = self
-        self.radio.next = self.next
+    def __init__(self, track_data):
         self.data = track_data['track']
         with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
 
@@ -184,32 +180,31 @@ class Track:
             self.readable_duration = self.info.duration
             if len(self.readable_duration) % 2 == 0 and not self.readable_duration.startswith("0"):
                 self.readable_duration = "0" + self.readable_duration
+            self.next = get_random_track()
             self.is_downloaded = False
             self.started_playing_at = None
             self.skipped = False
             self.next = None
 
 
-    async def play(self, voice, next: 'Track'):
-        self.next = next
-        self.radio.next = next
+    async def play(self, voice):
         os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
-        next.download()
+        self.next.download()
         await asyncio.sleep(self.info.duration_s)
-        os.remove("song.mp3")
-        print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
-        await self.play_intermission(voice)
         if not self.skipped:
-            await self.next.play(voice, get_random_track(self.bot))
+            os.remove("song.mp3")
+            print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
+            await self.play_intermission(voice)
+            await self.next.play(voice)
 
 
     async def skip(self, voice):
         voice.stop()
         self.skipped = True
-        self.next.play(voice, get_random_track(self.bot))
+        self.next.play(voice, get_random_track())
 
 
     async def play_intermission(self, voice):
@@ -258,14 +253,14 @@ class SpotifyUser:
         self.image_url = self.info['images'][0]['url']
 
 
-def get_random_track(bot):
+def get_random_track() -> Track:
     tracks = []
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
     while len(tracks) < total_tracks:
         results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
         tracks.extend(results["items"])
     track_data = rand.choice(tracks)
-    return Track(bot, track_data)
+    return Track(track_data)
 
 
 def setup(bot):
