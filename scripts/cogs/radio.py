@@ -43,7 +43,7 @@ class Radio(commands.Cog):
         self.channel = None
         self.playing = False
         print("[RADIO COG INIT] Creating initialization track")
-        self.current = get_random_track(self.bot)
+        self.current = get_random_track()
         self.current.download()
         print("[RADIO COG INIT] Initialization track created")
 
@@ -91,7 +91,7 @@ class Radio(commands.Cog):
             embed.add_field(name="**Joined**", value=self.channel.mention)
             await ctx.send(embed=embed)
             self.playing = True
-            await self.current.play(self.voice, get_random_track(self.bot))
+            await self.current.play(self.voice, get_random_track())
 
 
     @cog_ext.cog_slash(name="skip",
