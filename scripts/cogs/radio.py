@@ -196,7 +196,8 @@ class Track:
         self.radio.current = self
         self.next = get_random_track(self.radio)
         self.radio.next = self.next
-        os.rename("next.mp3", "song.mp3")
+        if "next.mp3" in os.listdir():
+            os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")

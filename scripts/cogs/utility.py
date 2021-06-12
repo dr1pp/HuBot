@@ -109,8 +109,10 @@ class Timer:
         self.operation_str = operation_str
         self.start_time = None
 
+
     def __enter__(self):
         self.start_time = datetime.datetime.now()
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         total_time = datetime.datetime.now() - self.start_time
