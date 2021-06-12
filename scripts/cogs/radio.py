@@ -134,7 +134,7 @@ class Radio(commands.Cog):
             try:
                 embed = discord.Embed(title=f"{self.current.readable_name} 🎵",
                                       url=self.current.urls.spotify,
-                                      description=f"<:youtube:847561221514985502> [Source]({self.current.urls.youtube})",
+                                      description=f"<:youtube:853381248746258454> [Source]({self.current.urls.youtube})",
                                       colour=discord.Colour(0x1DB954))
                 embed.set_thumbnail(url=self.current.urls.cover)
                 embed.set_footer(text=f"Added by: {self.current.info.added_by.name}", icon_url=self.current.info.added_by.image_url)
@@ -193,12 +193,12 @@ class Track:
 
 
     async def play(self, voice):
-        self.radio.current = self
-        self.next = get_random_track(self.radio)
-        self.radio.next = self.next
         if "next.mp3" in os.listdir():
             os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        self.radio.current = self
+        self.next = get_random_track(self.radio)
+        self.radio.next = self.next
         self.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
         self.next.download()
@@ -222,10 +222,11 @@ class Track:
             if rand.randint(0,5) == 0:
                 return rand.choice(os.listdir(INTERMISSIONS_DIR))
             return None
-
         if intermission := get_intermission():
-            print(f"[PLAY_TRACK] Playing intermission '{intermission}'")
+            print(f"[PLAY_INTERMISSION] Playing intermission '{intermission}'")
             voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"))
+        else:
+            print("[PLAY_INTERMISSION] No intermission played")
 
 
     def download(self) -> datetime.timedelta:
