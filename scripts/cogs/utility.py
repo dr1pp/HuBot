@@ -111,7 +111,6 @@ class Timer:
 
     def __enter__(self):
         self.start_time = datetime.datetime.now()
-        print(f"{self.operation_str} started!")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         total_time = datetime.datetime.now() - self.start_time

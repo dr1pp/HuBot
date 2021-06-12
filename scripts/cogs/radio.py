@@ -43,7 +43,7 @@ class Radio(commands.Cog):
         self.channel = None
         self.playing = False
         print("[RADIO COG INIT] Creating initialization track")
-        self.current = get_random_track()
+        self.current = get_random_track(self)
         self.current.download()
         print("[RADIO COG INIT] Initialization track created")
 
@@ -151,13 +151,18 @@ class Radio(commands.Cog):
                 pass
 
 
+def setup(bot):
+    bot.add_cog(Radio(bot))
+
+
 class Track:
 
     Info = namedtuple("Info", "title artist duration duration_s added_by")
     Media = namedtuple("Media", "spotify youtube cover")
 
-    def __init__(self, track_data):
+    def __init__(self, track_data, radio):
         self.data = track_data['track']
+        self.radio = radio
         with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
 
             self.readable_name = f"{self.data['album']['artists'][0]['name']} - {self.data['name']}"
@@ -188,7 +193,9 @@ class Track:
 
 
     async def play(self, voice):
-        self.next = get_random_track()
+        self.radio.current = self
+        self.next = get_random_track(self.radio)
+        self.radio.next = self.next
         os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
@@ -254,15 +261,11 @@ class SpotifyUser:
         self.image_url = self.info['images'][0]['url']
 
 
-def get_random_track() -> Track:
+def get_random_track(radio) -> Track:
     tracks = []
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
     while len(tracks) < total_tracks:
         results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
         tracks.extend(results["items"])
     track_data = rand.choice(tracks)
-    return Track(track_data)
-
-
-def setup(bot):
-    bot.add_cog(Radio(bot))
+    return Track(track_data, radio)
