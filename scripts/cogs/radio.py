@@ -156,7 +156,11 @@ class Track:
     Info = namedtuple("Info", "title artist duration duration_s added_by")
     Media = namedtuple("Media", "spotify youtube cover")
 
-    def __init__(self, track_data):
+    def __init__(self, bot, track_data):
+        self.bot = bot
+        self.radio = self.bot.get_cog("Radio")
+        self.radio.current = self
+        self.radio.next = self.next
         self.data = track_data['track']
         with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
 
@@ -188,6 +192,7 @@ class Track:
 
     async def play(self, voice: discord.VoiceProtocol, next: 'Track'):
         self.next = next
+        self.radio.next = next
         os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
@@ -204,7 +209,7 @@ class Track:
     async def skip(self, voice: discord.VoiceProtocol):
         await voice.stop()
         self.skipped = True
-        self.next.play(voice, get_random_track())
+        self.next.play(voice, get_random_track(self.bot))
 
 
     async def play_intermission(self, voice: discord.VoiceProtocol):
@@ -253,14 +258,14 @@ class SpotifyUser:
         self.image_url = self.info['images'][0]['url']
 
 
-def get_random_track():
+def get_random_track(bot):
     tracks = []
     total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
     while len(tracks) < total_tracks:
         results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
         tracks.extend(results["items"])
     track_data = rand.choice(tracks)
-    return Track(track_data)
+    return Track(bot, track_data)
 
 
 def setup(bot):
