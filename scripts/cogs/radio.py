@@ -169,7 +169,7 @@ class Track:
                 self.info = self.Info(self.data['name'],
                                       self.data['album']['artists'][0]['name'],
                                       self.youtube_data['duration'],
-                                      self.readable_time_to_seconds(),
+                                      self.readable_time_to_seconds(self.youtube_data['duration']),
                                       SpotifyUser(spotify.user(track_data['added_by']['id'])))
 
             self.urls = self.Media(self.data['external_urls']['spotify'],
@@ -234,8 +234,8 @@ class Track:
             return datetime.datetime.now() - start_time
 
 
-    def readable_time_to_seconds(self) -> int:
-        (m, s) = self.info.duration.split(":")
+    def readable_time_to_seconds(self, time_string: str) -> int:
+        (m, s) = time_string.split(":")
         return (m * 60) + s
 
 
