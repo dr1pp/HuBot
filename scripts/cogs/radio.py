@@ -23,6 +23,7 @@ INTERMISSIONS_DIR = "./radio_sounds"
 PLAYLIST_ID = "0EhIVTYDVaurXWRIXqB9At"
 
 ydl_ops = {
+        'no_warnings': True,
         'format': 'bestaudio/best',
         'outtmpl': 'next.%(ext)s',
         'postprocessors': [{
