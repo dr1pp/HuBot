@@ -188,7 +188,7 @@ class Track:
     async def play(self, voice: discord.VoiceProtocol, next: 'Track'):
         self.next = next
         os.rename("next.mp3", "song.mp3")
-        voice.play(discord.FFmpegPCMAudio("next.mp3"))
+        voice.play(discord.FFmpegPCMAudio("song.mp3"))
         self.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
         next.download()
