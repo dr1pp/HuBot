@@ -34,7 +34,6 @@ ydl_ops = {
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
 
-
 class Radio(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -188,14 +187,14 @@ class Track:
 
     async def play(self, voice: discord.VoiceProtocol, next: 'Track'):
         self.next = next
-        voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        os.rename("next.mp3", "song.mp3")
+        voice.play(discord.FFmpegPCMAudio("next.mp3"))
         self.started_playing_at = datetime.datetime.now()
         print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
         next.download()
         await asyncio.sleep(self.info.duration_s)
         os.remove("song.mp3")
         print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
-        os.rename("next.mp3", "song.mp3")
         await self.play_intermission(voice)
         if not self.skipped:
             await self.next.play(voice, get_random_track())
