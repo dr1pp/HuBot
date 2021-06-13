@@ -201,21 +201,22 @@ class Track:
         self.next = get_random_track(self.radio)
         self.radio.next = self.next
         self.started_playing_at = datetime.datetime.now()
-        print(f"[PLAY_TRACK] Now playing '{self.readable_name}'")
+        print(f"[Track.play] Now playing '{self.readable_name}'")
         self.next.download()
         await asyncio.sleep(self.info.duration_s)
         if not self.skipped:
             os.remove("song.mp3")
-            print(f"[PLAY_TRACK] Deleted song.mp3 for '{self.readable_name}'")
+            print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
             await self.play_intermission(voice)
             await self.next.play(voice)
 
 
     async def skip(self, voice):
-        print(f"[SKIP] Skipping {self.readable_name}")
+        print(f"[Track.skip] Skipping '{self.readable_name}'")
         voice.stop()
+        print(f"[Track.skip] Stopped plaing '{self.readable_name}'")
         self.skipped = True
-        self.next.play(voice)
+        await self.next.play(voice)
 
 
     async def play_intermission(self, voice):
