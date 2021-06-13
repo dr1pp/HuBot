@@ -130,7 +130,7 @@ class Radio(commands.Cog):
                        description="Show the song currently playing on the radio")
     async def now_playing(self, ctx: SlashContext):
         print(f"[NOW_PLAYING] Trying to send now playing message")
-        await ctx.defer(hidden=True)
+        await ctx.defer()
         sent = False
         while not sent:
             try:
@@ -147,10 +147,10 @@ class Radio(commands.Cog):
                 embed.add_field(name="Up Next",
                                 value=f"[{self.current.next.readable_name}]({self.current.next.urls.spotify})",
                                 inline=False)
-                await ctx.send(embed=embed, hidden=True)
+                await ctx.send(embed=embed)
                 sent = True
             except AttributeError or TypeError:
-                await ctx.send(":mag_right: Finding next song info...", hidden=True)
+                await ctx.send(":mag_right: Finding next song info...")
 
 
 def setup(bot):
