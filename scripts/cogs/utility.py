@@ -52,7 +52,7 @@ class Utility(commands.Cog):
         embed = discord.Embed(title="Dice Roll :game_die:",
                               description=f"Rolled `{rolls}` {sides} sided die")
         embed.add_field(name="Roll #", value=str([f"{roll_num}\n" for roll_num in range(1, rolls+1)]))
-        embed.add_field(name="Result", value=str([(random.randint(0, sides)+1) for roll in range(1, rolls+1)])
+        embed.add_field(name="Result", value=str([(random.randint(0, sides)+1) for roll in range(1, rolls+1)]))
         await ctx.send(embed=embed)
 
 

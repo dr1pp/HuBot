@@ -218,7 +218,6 @@ class Track:
                     await asyncio.sleep(1)
 
 
-
     async def skip(self, voice):
         print(f"[Track.skip] Skipping '{self.readable_name}'")
         voice.stop()
