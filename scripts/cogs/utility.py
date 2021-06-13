@@ -51,6 +51,7 @@ class Utility(commands.Cog):
                                          required=False)
                        ])
     async def dice_roll(self, ctx: SlashContext, sides: int = 6, rolls: int = 1):
+        await ctx.defer()
         embed = discord.Embed(title="Dice Roll :game_die:",
                               description=f"Rolled `{rolls}` {sides} sided die")
         embed.add_field(name="Roll #", value="\n".join([str(roll_num) for roll_num in range(1, rolls+1)]))
