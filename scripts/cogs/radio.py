@@ -208,13 +208,13 @@ class Track:
         finished = False
         if not self.skipped:
             while not finished:
-                if not voice.is_playing():
+                try:
                     self.finished = True
                     os.remove("song.mp3")
                     print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
                     await self.play_intermission(voice)
                     await self.next.play(voice)
-                else:
+                except discord.ClientException:
                     await asyncio.sleep(1)
 
 
