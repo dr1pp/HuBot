@@ -130,7 +130,7 @@ class Radio(commands.Cog):
                        description="Show the song currently playing on the radio")
     async def now_playing(self, ctx: SlashContext):
         print(f"[NOW_PLAYING] Trying to send now playing message")
-        await ctx.defer()
+        await ctx.defer(hidden=True)
         sent = False
         while not sent:
             try:
@@ -205,11 +205,18 @@ class Track:
         print(f"[Track.play] Now playing '{self.readable_name}'")
         self.next.download()
         await asyncio.sleep(self.info.duration_s)
+        finished = False
         if not self.skipped:
-            os.remove("song.mp3")
-            print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
-            await self.play_intermission(voice)
-            await self.next.play(voice)
+            while not finished:
+                if not voice.is_playing():
+                    self.finished = True
+                    os.remove("song.mp3")
+                    print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
+                    await self.play_intermission(voice)
+                    await self.next.play(voice)
+                else:
+                    await asyncio.sleep(1)
+
 
 
     async def skip(self, voice):
