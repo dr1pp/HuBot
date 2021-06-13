@@ -71,7 +71,7 @@ class Utility(commands.Cog):
     async def set_colour(self, ctx: SlashContext, colour: str):
         await ctx.defer()
         if hex_string := get_valid_hex(colour):
-            results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", ctx.author_id)
+            results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", (ctx.author_id,))
             if len(results) > 0:
                 role_id = results[0][0]
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
