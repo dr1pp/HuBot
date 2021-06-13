@@ -214,7 +214,7 @@ class Track:
                     print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
                     await self.play_intermission(voice)
                     await self.next.play(voice)
-                except discord.ClientException:
+                except FileNotFoundError or discord.ClientException:
                     await asyncio.sleep(1)
 
 
