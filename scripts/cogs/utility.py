@@ -50,11 +50,11 @@ class Utility(commands.Cog):
                                          option_type=SlashCommandOptionType.INTEGER,
                                          required=False)
                        ])
-    async def d(self, ctx: SlashContext, sides: int = 6, rolls: int = 1):
+    async def dice_roll(self, ctx: SlashContext, sides: int = 6, rolls: int = 1):
         embed = discord.Embed(title="Dice Roll :game_die:",
                               description=f"Rolled `{rolls}` {sides} sided die")
-        embed.add_field(name="Roll #", value=str([f"{roll_num}\n" for roll_num in range(1, rolls+1)]))
-        embed.add_field(name="Result", value=str([(random.randint(0, sides)+1) for roll in range(1, rolls+1)]))
+        embed.add_field(name="Roll #", value="\n".join([str(roll_num) for roll_num in range(1, rolls+1)]))
+        embed.add_field(name="Result", value="\n".join([str((random.randint(0, sides)+1)) for roll in range(1, rolls+1)]))
         await ctx.send(embed=embed)
 
 
