@@ -148,8 +148,8 @@ class Radio(commands.Cog):
                                 inline=False)
                 await ctx.send(embed=embed, hidden=True)
                 sent = True
-            except AttributeError:
-                await ctx.send(":mag_right: Finding next song info, please wait", hidden=True)
+            except AttributeError or TypeError:
+                await ctx.send(":mag_right: Finding next song info...", hidden=True)
 
 
 def setup(bot):
@@ -197,10 +197,10 @@ class Track:
         if "next.mp3" in os.listdir():
             os.rename("next.mp3", "song.mp3")
         voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        self.started_playing_at = datetime.datetime.now()
         self.radio.current = self
         self.next = get_random_track(self.radio)
         self.radio.next = self.next
-        self.started_playing_at = datetime.datetime.now()
         print(f"[Track.play] Now playing '{self.readable_name}'")
         self.next.download()
         await asyncio.sleep(self.info.duration_s)
