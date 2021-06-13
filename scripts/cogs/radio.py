@@ -129,6 +129,7 @@ class Radio(commands.Cog):
     @cog_ext.cog_slash(name="np",
                        description="Show the song currently playing on the radio")
     async def now_playing(self, ctx: SlashContext):
+        print(f"[NOW_PLAYING] Trying to send now playing message")
         await ctx.defer()
         sent = False
         while not sent:
