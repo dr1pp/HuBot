@@ -22,6 +22,7 @@ class Utility(commands.Cog):
                        guild_ids=[336950154189864961],
                        options=[
                            create_option(name="limit",
+                                         option_type=SlashCommandOptionType.INTEGER,
                                          description="How many messages you would like to scan through",
 
                                          required=False)
@@ -34,6 +35,7 @@ class Utility(commands.Cog):
         channel = ctx.message.channel
         deleted = await channel.purge(limit=limit, check=is_bot)
         await ctx.send(f":recycle:  Purged **{len(deleted)}** bot related message(s)", delete_after=10)
+
 
     @cog_ext.cog_slash(name="d",
                        description="Roll a [sides] sided dice [rolls] times",
@@ -54,7 +56,6 @@ class Utility(commands.Cog):
         embed.add_field(name="Roll #", value=str([f"{roll_num}\n" for roll_num in range(1, rolls+1)]))
         embed.add_field(name="Result", value=str([(random.randint(0, sides)+1) for roll in range(1, rolls+1)]))
         await ctx.send(embed=embed)
-
 
 
     @cog_ext.cog_slash(name="set_colour",
