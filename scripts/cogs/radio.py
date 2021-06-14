@@ -169,13 +169,13 @@ class Radio(commands.Cog):
             lyrics = song.lyrics
             lyrics = lyrics.replace("[", "**[")
             lyrics = lyrics.replace("]", "]**")
-            embed = discord.Embed(title=f"Lyrics",
-                                  url = song.url,
+            embed = discord.Embed(title=self.current.readable_name,
+                                  url=self.current.urls.spotify,
                                   description=lyrics,
                                   colour=0xFFFF64)
-            embed.set_author(name=self.current.readable_name,
-                             url=self.current.urls.spotify,
-                             icon_url=self.current.urls.cover)
+            embed.set_thumbnail(url=self.current.urls.cover)
+            embed.set_author(name="Lyrics",
+                             url=song.url)
             embed.set_footer(text="Lyrics provided by Genius",
                              icon_url="https://yt3.ggpht.com/ytc/AAUvwnhdXmlXUOMVWrtriaWaQem3dZiB-OfAE4_zHrt8Cw=s900-c-k-c0x00ffffff-no-rj",)
             print("[LYRICS] Embed built, sending message")
