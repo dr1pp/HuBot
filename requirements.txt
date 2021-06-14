@@ -5,3 +5,4 @@ youtube-dl
 youtube-search
 discord-components
 discord-py-slash-command
+lyricsgenius
