@@ -230,14 +230,20 @@ class Track:
     async def play(self, voice):
         if "next.mp3" in os.listdir():
             os.rename("next.mp3", "song.mp3")
-        voice.play(discord.FFmpegPCMAudio("song.mp3"))
+        playing = False
+        while not playing:
+            try:
+                voice.play(discord.FFmpegPCMAudio("song.mp3"))
+                playing = True
+            except discord.errors.ClientException:
+                await asyncio.sleep(1)
         self.started_playing_at = datetime.datetime.now()
         self.radio.current = self
         self.next = get_random_track(self.radio)
         self.radio.next = self.next
         print(f"[Track.play] Now playing '{self.readable_name}'")
         self.next.download()
-        await asyncio.sleep(self.info.duration_s + 5)
+        await asyncio.sleep(self.info.duration_s)
         finished = False
         if not self.skipped:
             while not finished:
@@ -247,7 +253,7 @@ class Track:
                     print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
                     await self.play_intermission(voice)
                     await self.next.play(voice)
-                except FileNotFoundError or discord.ClientException:
+                except FileNotFoundError:
                     await asyncio.sleep(1)
 
 
