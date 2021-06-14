@@ -129,7 +129,8 @@ class Radio(commands.Cog):
 
 
     @cog_ext.cog_slash(name="np",
-                       description="Show the song currently playing on the radio")
+                       description="Show the song currently playing on the radio",
+                       guild_ids=[336950154189864961])
     async def now_playing(self, ctx: SlashContext):
         print(f"[NOW_PLAYING] Trying to send now playing message")
         await ctx.defer()
@@ -156,7 +157,8 @@ class Radio(commands.Cog):
                 await asyncio.sleep(5)
 
     @cog_ext.cog_slash(name="lyrics",
-                       description="Get the lyrics of the current song")
+                       description="Get the lyrics of the current song",
+                       guild_ids=[336950154189864961])
     async def lyrics(self, ctx: SlashContext):
         await ctx.defer()
         if self.playing:
