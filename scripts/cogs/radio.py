@@ -6,6 +6,7 @@ import os
 import asyncio
 import datetime
 import cogs.utility as util
+import lyricsgenius
 
 from discord_slash import cog_ext, SlashContext
 from discord_slash.model import SlashCommandOptionType
@@ -35,6 +36,7 @@ ydl_ops = {
     }
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
+genius = lyricsgenius.Genius()
 
 
 class Radio(commands.Cog):
@@ -75,7 +77,7 @@ class Radio(commands.Cog):
                 return
 
         print(f"[$JOIN] Target channel is {self.channel.name}")
-        embed = discord.Embed(title="Discord FM :headphones:", colour=0x5DADEC)
+        embed = discord.Embed(title="Discord FM :headphones:", colour=0x3C406F)
         if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
             self.voice = voice
             print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
@@ -152,6 +154,29 @@ class Radio(commands.Cog):
             except AttributeError or TypeError:
                 await ctx.send(":mag_right: Finding next song info...")
                 await asyncio.sleep(5)
+
+    @cog_ext.cog_slash(name="lyrics",
+                       description="Get the lyrics of the current song")
+    async def lyrics(self, ctx: SlashContext):
+        await ctx.defer()
+        if self.playing:
+            song = genius.search_song(self.current.info.title, self.current.info.artist)
+            lyrics = song.lyrics
+            lyrics = lyrics.replace("[", "**[")
+            lyrics = lyrics.replace("]", "]**")
+            embed = discord.Embed(title=f"Lyrics",
+                                  url = song.url,
+                                  description=lyrics,
+                                  colour=0xFFFF64)
+            embed.set_author(name=self.current.readable_name,
+                             url=self.current.urls.spotify,
+                             icon_url=self.current.urls.cover)
+            embed.set_footer(text="Lyrics provided by Genius",
+                             icon_url="https://yt3.ggpht.com/ytc/AAUvwnhdXmlXUOMVWrtriaWaQem3dZiB-OfAE4_zHrt8Cw=s900-c-k-c0x00ffffff-no-rj",)
+
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("The bot is not currently playing any music")
 
 
 def setup(bot):
