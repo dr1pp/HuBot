@@ -237,7 +237,7 @@ class Track:
         self.radio.next = self.next
         print(f"[Track.play] Now playing '{self.readable_name}'")
         self.next.download()
-        await asyncio.sleep(self.info.duration_s)
+        await asyncio.sleep(self.info.duration_s + 5)
         finished = False
         if not self.skipped:
             while not finished:
