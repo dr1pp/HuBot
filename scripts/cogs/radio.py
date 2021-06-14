@@ -151,6 +151,7 @@ class Radio(commands.Cog):
                 sent = True
             except AttributeError or TypeError:
                 await ctx.send(":mag_right: Finding next song info...")
+                await asyncio.sleep(5)
 
 
 def setup(bot):

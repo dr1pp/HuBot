@@ -52,10 +52,15 @@ class Utility(commands.Cog):
                        ])
     async def dice_roll(self, ctx: SlashContext, sides: int = 6, rolls: int = 1):
         await ctx.defer()
+        values = [random.randint(1, sides+1) for i in range(1, rolls+1)]
         embed = discord.Embed(title="Dice Roll :game_die:",
-                              description=f"Rolled `{rolls}` {sides} sided die")
-        embed.add_field(name="Roll #", value="\n".join([str(roll_num) for roll_num in range(1, rolls+1)]))
-        embed.add_field(name="Result", value="\n".join([str((random.randint(0, sides)+1)) for roll in range(1, rolls+1)]))
+                              description=f"Rolled {rolls} {sides} sided die",
+                              colour=0xEA596E)
+        embed.add_field(name="Roll #", value="\n".join(range(1, len(values))), inline=True)
+        embed.add_field(name="Result", value="\n".join([str(val) for val in values]), inline=True)
+        if rolls > 1:
+            embed.add_field(name="Total", value=str(sum(values)), inline=False)
+            embed.add_field(name="Average", value=str(sum(values) / len(values)), inline=True)
         await ctx.send(embed=embed)
 
 
