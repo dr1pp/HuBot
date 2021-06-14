@@ -169,6 +169,8 @@ class Radio(commands.Cog):
             lyrics = song.lyrics
             lyrics = lyrics.replace("[", "**[")
             lyrics = lyrics.replace("]", "]**")
+            lyrics = lyrics.replace("(", "(*")
+            lyrics = lyrics.replace(")", "*)")
             embed = discord.Embed(title=self.current.readable_name,
                                   url=self.current.urls.spotify,
                                   description=lyrics,
