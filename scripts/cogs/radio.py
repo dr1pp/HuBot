@@ -156,13 +156,16 @@ class Radio(commands.Cog):
                 await ctx.send(":mag_right: Finding next song info...")
                 await asyncio.sleep(5)
 
+
     @cog_ext.cog_slash(name="lyrics",
                        description="Get the lyrics of the current song",
                        guild_ids=[336950154189864961])
     async def lyrics(self, ctx: SlashContext):
         await ctx.defer()
         if self.playing:
+            print(f"[LYRICS] Getting lyrics for {self.current.readable_name}")
             song = genius.search_song(self.current.info.title, self.current.info.artist)
+            print(f"[LYRICS] Lyrics for {self.current.readable_name} found!")
             lyrics = song.lyrics
             lyrics = lyrics.replace("[", "**[")
             lyrics = lyrics.replace("]", "]**")
@@ -175,7 +178,7 @@ class Radio(commands.Cog):
                              icon_url=self.current.urls.cover)
             embed.set_footer(text="Lyrics provided by Genius",
                              icon_url="https://yt3.ggpht.com/ytc/AAUvwnhdXmlXUOMVWrtriaWaQem3dZiB-OfAE4_zHrt8Cw=s900-c-k-c0x00ffffff-no-rj",)
-
+            print("[LYRICS] Embed built, sending message")
             await ctx.send(embed=embed)
         else:
             await ctx.send("The bot is not currently playing any music")
