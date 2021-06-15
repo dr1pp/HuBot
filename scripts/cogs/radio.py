@@ -174,22 +174,17 @@ class Radio(commands.Cog):
             lyrics = lyrics.replace("]", "]**")
             lyrics = lyrics.replace("(", "(*")
             lyrics = lyrics.replace(")", "*)")
-            embeds = [discord.Embed(title=self.current.readable_name,
+            embed = discord.Embed(title=self.current.readable_name,
                                   url=self.current.urls.spotify,
                                   description=lyrics[0:max((len(lyrics)-1, 2048))],
-                                  colour=0xFFFF64)]
-            if len(lyrics) > 2048:
-                embeds.append(discord.Embed(title=self.current.readable_name,
-                                            url=self.current.urls.spotify,
-                                            description=lyrics[2048:len(lyrics)],
-                                            colour=0xFFFF64))
-            embeds[0].set_thumbnail(url=self.current.urls.cover)
-            embeds[0].set_author(name="Lyrics",
+                                  colour=0xFFFF64)
+            embed.set_thumbnail(url=self.current.urls.cover)
+            embed.set_author(name="Lyrics",
                              url=song.url)
-            embeds[-1].set_footer(text="Lyrics provided by Genius",
+            embed.set_footer(text="Lyrics provided by Genius",
                              icon_url="https://yt3.ggpht.com/ytc/AAUvwnhdXmlXUOMVWrtriaWaQem3dZiB-OfAE4_zHrt8Cw=s900-c-k-c0x00ffffff-no-rj",)
             print("[LYRICS] Embed built, sending message")
-            await ctx.send(embeds=embeds)
+            await ctx.send(embed=embed)
         else:
             await ctx.send("The bot is not currently playing any music")
 
