@@ -96,14 +96,14 @@ class EconomyManager:
 
 
     def balance(self, user: discord.User) -> int:
-        user_id = util.check_user_exists(user)
+        user_id = util.check_user_exists(self.db, user)
         results = self.db.get("SELECT money FROM UserData WHERE id = ?", (user_id,))
         balance = int(results[0][0])
         return balance
 
 
     def give_money(self, user: discord.User, amount: int):
-        user_id = util.check_user_exists(user)
+        user_id = util.check_user_exists(self.db, user)
         current = self.balance(user)
         self.db.execute("UPDATE UserData SET money = ? WHERE id = ?", (current + amount, user_id))
 

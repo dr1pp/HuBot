@@ -27,7 +27,6 @@ class Utility(commands.Cog):
                            create_option(name="limit",
                                          option_type=SlashCommandOptionType.INTEGER,
                                          description="How many messages you would like to scan through",
-
                                          required=False)
                        ])
     async def cleanup(self, ctx, limit: int):
