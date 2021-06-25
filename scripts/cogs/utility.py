@@ -5,11 +5,14 @@ import asyncio
 import re
 import datetime
 
+from dataclasses import dataclass
+from collections import namedtuple
 from discord.ext import commands
-import discord_components as components
-from discord_slash import cog_ext, SlashContext
-from discord_slash.model import SlashCommandOptionType
+from discord_slash import cog_ext, SlashContext, ComponentContext
+from discord_slash.model import SlashCommandOptionType, ButtonStyle
 from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.utils import manage_components
+from discord_slash.utils.manage_components import create_button, create_actionrow
 
 
 class Utility(commands.Cog):
@@ -77,7 +80,6 @@ class Utility(commands.Cog):
         await ctx.defer()
         if hex_string := get_valid_hex(colour):
             results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", (ctx.author_id,))
-            print(self.bot.db.get("SELECT * FROM UserData"))
             print(results)
             if len(results) > 0:
                 role_id = results[0][0]
@@ -101,6 +103,7 @@ class Utility(commands.Cog):
                        ])
     async def claim_role(self, ctx: SlashContext, role: discord.Role):
         await ctx.defer()
+        check_user_exists(self.bot.db, ctx.author)
         self.bot.db.execute("UPDATE UserData SET role_id = ? WHERE id = ?", (role.id, ctx.author_id))
         embed = discord.Embed(title="Role Claimed",
                               description=f"You have claimed {role.mention} as your colour role",
@@ -136,6 +139,17 @@ def get_valid_hex(string: str):
         return None
 
 
+def check_user_exists(db, user: discord.User) -> int:
+    results = db.get("SELECT * FROM UserData WHERE id = ?", (user.id,))
+    if len(results) == 0:
+        enlist_user(db, user)
+    return user.id
+
+
+def enlist_user(db, user: discord.User):
+    db.execute("INSERT INTO UserData VALUES (?, 100, NULL)", (user.id,))
+
+
 class Timer:
     def __init__(self, operation_str: str):
         self.operation_str = operation_str
@@ -151,44 +165,61 @@ class Timer:
         print(f"{self.operation_str} completed in {total_time.seconds}.{str(total_time.microseconds)[:3]} seconds!")
 
 
+@dataclass
+class Button:
+    style: ButtonStyle = 2,
+    label: str = "",
+    emoji: discord.Emoji = None,
+    custom_id: str = None,
+    url: str = None,
+    disabled: bool = False
+
+
 class InteractiveMessage:
     def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
         self.bot = bot
         self.content = content
         self.embed = embed
-        self.items = [[] * 5]
+        self.comps = [[] for i in range(5)]
+        self.callbacks = {}
         self.timeout = None
-        self.message = None
+
+        self.Callback = namedtuple("callback", "func args kwargs")
 
 
-    def add_button(self, row: int, button: components.Button, callback: callable, *args, **kwargs):
-        self.items[row].append([button, callback, args, kwargs])
+    def add_button(self, button: Button, row: int = 0, callback: callable = None, *args, **kwargs,):
+        if callback:
+            self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
+        if button.url[0] and button.style != ButtonStyle.URL:
+            raise AttributeError("URL button requires URL style")
+        self.comps[row].append(create_button(
+            style=button.style,
+            label=button.label,
+            custom_id=button.custom_id,
+            disabled=button.disabled
+        ))
+        if button.emoji[0]:
+            self.comps[row][-1]["emoji"] = button.emoji[0]
+        if button.url[0]:
+            self.comps[row][-1]["url"] = button.url[0]
 
 
     def add_timeout(self, callback, *args, **kwargs):
-        self.timeout = {"callback": callback, "args": args, "kwargs": kwargs}
+        self.timeout = self.Callback(callback, args, kwargs)
 
 
-    def get_components_list(self):
-        return [[item[0] for item in row] for row in self.items]
-
-
-    async def send_message(self, ctx):
-        self.message = await ctx.send(self.content, embed=self.embed, components=self.get_components_list())
+    async def send_message(self, ctx: SlashContext):
+        comps = [create_actionrow(*row) for row in self.comps if len(row) > 0]
+        await ctx.send(self.content, embed=self.embed, components=comps)
         listening = True
         while listening:
             try:
-                res = await self.bot.wait_for("button_click")
-                if res.message == self.message:
-                    comp = res.component
-                    for row in self.items:
-                        for item in row:
-                            if comp.id == item[0].id:
-                                await item[1](res, *item[2], **item[3])
-
+                button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot, components=self.comps)
+                callback = self.callbacks[button_ctx.custom_id]
+                await callback.func(button_ctx, *callback.args, **callback.kwargs)
             except asyncio.TimeoutError:
                 if self.timeout:
-                    self.timeout["callback"](*self.timeout["args"], **self.timeout["kwargs"])
+                    self.timeout.callback(*self.timeout.args, **self.timeout.kwargs)
 
 
 class ConfirmationMessage:

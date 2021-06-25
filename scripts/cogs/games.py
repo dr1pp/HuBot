@@ -8,6 +8,9 @@ import discord_components as components
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
+from discord_slash.utils.manage_components import create_button
+from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.model import ButtonStyle, SlashCommandOptionType
 from typing import Tuple
 
 
@@ -42,9 +45,26 @@ class Games(commands.Cog):
         self.econ_manager = self.economy.manager
 
 
-    @commands.command(name="slots",
-                       description="Slot machine minigame")
-    async def slots(self, ctx, amount: int):
+    @cog_ext.cog_slash(name="slots",
+                       description="Slot machine minigame",
+                       guild_ids=[336950154189864961],
+                       options=[
+                           create_option(
+                               name="amount",
+                               description="How many e฿UX you would like to put into each spin",
+                               option_type=SlashCommandOptionType.INTEGER,
+                               choices=[
+                                   create_choice(10, "฿10"),
+                                   create_choice(50, "฿50"),
+                                   create_choice(100, "฿100"),
+                                   create_choice(1000, "฿1,000"),
+                                   create_choice(10000, "฿10,000"),
+                                   create_choice(100000, "฿100,000")
+                               ],
+                               required=False
+                           )
+                       ])
+    async def slots(self, ctx: SlashContext, amount: int):
         slots = SlotMachine(ctx, self.bot, amount)
         await slots.play()
 
@@ -136,7 +156,7 @@ class SlotMachine:
             won, mult = self.check_win(grid)
             winnings = int(self.bet * mult)
             game = util.InteractiveMessage(self.bot, embed=self.build_embed(grid, won, mult))
-            game.add_button(0, components.Button(label="Spin", style=components.ButtonStyle.green), spin)
+            game.add_button(0, create_button(label="Spin", style=components.ButtonStyle.green), spin)
             game.add_button(0, components.Button(label="Quit", style=components.ButtonStyle.red), quit)
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)

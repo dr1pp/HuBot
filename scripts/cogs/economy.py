@@ -1,5 +1,6 @@
 import discord
 import sqlite3
+import cogs.utility as util
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
@@ -18,7 +19,6 @@ class Economy(commands.Cog):
                        guild_ids=[336950154189864961])
     async def balance(self, ctx: SlashContext):
         user = ctx.author
-        self.manager.check_user_exists(user)
         balance = self.manager.balance(user)
         embed = discord.Embed(title="Balance :credit_card:",
                               description=f"Your current balance is:\n**฿{balance}**",
@@ -96,25 +96,14 @@ class EconomyManager:
 
 
     def balance(self, user: discord.User) -> int:
-        user_id = self.check_user_exists(user)
+        user_id = util.check_user_exists(user)
         results = self.db.get("SELECT money FROM UserData WHERE id = ?", (user_id,))
         balance = int(results[0][0])
         return balance
 
 
-    def enlist_user(self, user: discord.User):
-        self.db.execute("INSERT INTO UserData VALUES (?, 100, NULL)", (user.id,))
-
-
-    def check_user_exists(self, user: discord.User) -> int:
-        results = self.db.get("SELECT * FROM UserData WHERE id = ?", (user.id,))
-        if len(results) == 0:
-            self.enlist_user(user)
-        return user.id
-
-
     def give_money(self, user: discord.User, amount: int):
-        user_id = self.check_user_exists(user)
+        user_id = util.check_user_exists(user)
         current = self.balance(user)
         self.db.execute("UPDATE UserData SET money = ? WHERE id = ?", (current + amount, user_id))
 

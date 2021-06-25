@@ -11,6 +11,7 @@ import lyricsgenius
 from discord_slash import cog_ext, SlashContext
 from discord_slash.model import SlashCommandOptionType
 from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash.utils import manage_components
 from spotipy.oauth2 import SpotifyClientCredentials
 from discord.ext import commands
 from youtube_search import YoutubeSearch
@@ -36,7 +37,7 @@ ydl_ops = {
     }
 
 spotify = sp.Spotify(client_credentials_manager=SpotifyClientCredentials())
-genius = lyricsgenius.Genius()
+genius = lyricsgenius.Genius(verbose=False)
 
 
 class Radio(commands.Cog):
@@ -45,10 +46,10 @@ class Radio(commands.Cog):
         self.current = None
         self.channel = None
         self.playing = False
-        print("[RADIO COG INIT] Creating initialization track")
+        print("[Radio.__init__()] Creating initialization track")
         self.current = get_random_track(self)
         self.current.download()
-        print("[RADIO COG INIT] Initialization track created")
+        print("[Radio.__init__()] Initialization track created")
 
 
     @cog_ext.cog_slash(name="join",
@@ -76,18 +77,18 @@ class Radio(commands.Cog):
                 await ctx.send(f"{channel.mention} is not a voice channel", hidden=True)
                 return
 
-        print(f"[$JOIN] Target channel is {self.channel.name}")
+        print(f"[/join] Target channel is {self.channel.name}")
         embed = discord.Embed(title="Discord FM :headphones:", colour=0x3C406F)
         if voice := discord.utils.get(self.bot.voice_clients, guild=ctx.guild):
             self.voice = voice
-            print(f"[$JOIN] Voice client connected to {self.voice.channel.name}")
-            print(f"[$JOIN] Moving to {self.channel.name} per {ctx.author}'s request")
+            print(f"[/join] Voice client connected to {self.voice.channel.name}")
+            print(f"[/join] Moving to {self.channel.name} per {ctx.author}'s request")
             await self.voice.move_to(self.channel)
             embed.add_field(name="**Moved to**", value=self.channel.mention)
             await ctx.send(embed=embed)
         else:
-            print("[$JOIN] No voice client found in server, creating one")
-            print(f"[$JOIN] Joining {self.channel.name} per {ctx.author}'s request")
+            print("[/join] No voice client found in server, creating one")
+            print(f"[/join] Joining {self.channel.name} per {ctx.author}'s request")
             self.voice = await self.channel.connect()
             if not self.voice.is_connected():
                 await self.channel.connect()
@@ -101,6 +102,7 @@ class Radio(commands.Cog):
                        description="Skip the current song playing on the radio",
                        guild_ids=[336950154189864961])
     async def skip(self, ctx: SlashContext):
+        print(f"[/skip] Skipping {self.current.readable_name} - Invoked by {ctx.author}")
         await ctx.send(f":track_next: Skipped **{self.current.readable_name}**")
         await self.current.skip(self.voice)
 
@@ -132,7 +134,7 @@ class Radio(commands.Cog):
                        description="Show the song currently playing on the radio",
                        guild_ids=[336950154189864961])
     async def now_playing(self, ctx: SlashContext):
-        print(f"[NOW_PLAYING] Trying to send now playing message")
+        print(f"[/np] Trying to send now playing message")
         await ctx.defer()
         sent = False
         while not sent:
@@ -163,7 +165,7 @@ class Radio(commands.Cog):
     async def lyrics(self, ctx: SlashContext):
         await ctx.defer()
         if self.playing:
-            with util.Timer(f"[LYRICS] Retrieving lyrics for {self.current.readable_name}"):
+            with util.Timer(f"[/lyrics] Retrieving lyrics for {self.current.readable_name}"):
                 song = genius.search_song(self.current.info.title, self.current.info.artist)
             try:
                 lyrics = song.lyrics
@@ -183,7 +185,7 @@ class Radio(commands.Cog):
                              url=song.url)
             embed.set_footer(text="Lyrics provided by Genius",
                              icon_url="https://yt3.ggpht.com/ytc/AAUvwnhdXmlXUOMVWrtriaWaQem3dZiB-OfAE4_zHrt8Cw=s900-c-k-c0x00ffffff-no-rj",)
-            print("[LYRICS] Embed built, sending message")
+            print("[/lyrics] Embed built, sending message")
             await ctx.send(embed=embed)
         else:
             await ctx.send("The bot is not currently playing any music")
@@ -198,17 +200,17 @@ class Track:
     Info = namedtuple("Info", "title artist duration duration_s added_by")
     Media = namedtuple("Media", "spotify youtube cover")
 
-    def __init__(self, track_data, radio):
+    def __init__(self, track_data: dict, radio):
         self.data = track_data['track']
         self.radio = radio
-        with util.Timer(f"[TRACK INIT] Initialisation of '{self.data['name']}'"):
+        with util.Timer(f"[Track.__init__()] Initialisation of '{self.data['name']}'"):
 
             self.readable_name = f"{self.data['album']['artists'][0]['name']} - {self.data['name']}"
 
-            with util.Timer(f"[TRACK INIT] YouTube data extraction for '{self.data['name']}'"):
+            with util.Timer(f"[Track.__init__()] YouTube data extraction for '{self.data['name']}'"):
                 self.youtube_data = YoutubeSearch(self.readable_name, max_results=1).to_dict()[0]
 
-            with util.Timer(f"[TRACK INIT] Spotify data extraction for '{self.data['name']}'"):
+            with util.Timer(f"[Track.__init__()] Spotify data extraction for '{self.data['name']}'"):
                 self.info = self.Info(self.data['name'],
                                       self.data['album']['artists'][0]['name'],
                                       self.youtube_data['duration'],
@@ -237,6 +239,7 @@ class Track:
         while not playing:
             try:
                 voice.play(discord.FFmpegPCMAudio("song.mp3"))
+                print(f"[Track.play()] Now playing '{self.readable_name}'")
                 playing = True
             except discord.errors.ClientException:
                 await asyncio.sleep(1)
@@ -244,26 +247,27 @@ class Track:
         self.radio.current = self
         self.next = get_random_track(self.radio)
         self.radio.next = self.next
-        print(f"[Track.play] Now playing '{self.readable_name}'")
+        print(f"[Track.play()] Downloading next track")
         self.next.download()
         await asyncio.sleep(self.info.duration_s)
+        print(f"[Track.play()] {self.readable_name} sleep finished")
         finished = False
         if not self.skipped:
             while not finished:
                 try:
                     self.finished = True
                     os.remove("song.mp3")
-                    print(f"[Track.play] Deleted song.mp3 for '{self.readable_name}'")
+                    print(f"[Track.play()] Deleted song.mp3 for '{self.readable_name}'")
                     await self.play_intermission(voice)
                     await self.next.play(voice)
                 except FileNotFoundError:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
 
 
     async def skip(self, voice):
-        print(f"[Track.skip] Skipping '{self.readable_name}'")
+        print(f"[Track.skip()] Skipping '{self.readable_name}'")
         voice.stop()
-        print(f"[Track.skip] Stopped plaing '{self.readable_name}'")
+        print(f"[Track.skip()] Stopped plaing '{self.readable_name}'")
         self.skipped = True
         await self.next.play(voice)
 
@@ -275,23 +279,23 @@ class Track:
                 return rand.choice(os.listdir(INTERMISSIONS_DIR))
             return None
         if intermission := get_intermission():
-            print(f"[PLAY_INTERMISSION] Playing intermission '{intermission}'")
+            print(f"[Track.play_intermission()] Playing intermission '{intermission}'")
             voice.play(discord.FFmpegPCMAudio(f"{INTERMISSIONS_DIR}/{intermission}"))
         else:
-            print("[PLAY_INTERMISSION] No intermission played")
+            print("[Track.play_intermission()] No intermission played")
 
 
     def download(self) -> datetime.timedelta:
         start_time = datetime.datetime.now()
-        print(f"[YTDL] Attempting to download '{self.readable_name}' from {self.urls.youtube}")
+        print(f"[Track.download()] Attempting to download '{self.readable_name}' from {self.urls.youtube}")
         with youtube_dl.YoutubeDL(ydl_ops) as ydl:
             try:
-                with util.Timer(f"[YTDL] Download of '{self.readable_name}'"):
+                with util.Timer(f"[Track.download()] Download of '{self.readable_name}'"):
                     with suppress(NotADirectoryError):
                         ydl.download([self.urls.youtube])
                 self.is_downloaded = True
             except youtube_dl.utils.DownloadError as err:
-                print(f"[YTDL] Download of '{self.readable_name}' threw the following exception: {err.exc_info[1]}")
+                print(f"[Track.download()] Download of '{self.readable_name}' threw the following exception: {err.exc_info[1]}")
                 self.is_downloaded = False
             return datetime.datetime.now() - start_time
 
@@ -315,11 +319,12 @@ class SpotifyUser:
         self.image_url = self.info['images'][0]['url']
 
 
-def get_random_track(radio) -> Track:
+def get_random_track(radio: Radio) -> Track:
     tracks = []
-    total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
-    while len(tracks) < total_tracks:
-        results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
-        tracks.extend(results["items"])
-    track_data = rand.choice(tracks)
-    return Track(track_data, radio)
+    with util.Timer("[get_random_track()] Getting random track"):
+        total_tracks = int(spotify.playlist(PLAYLIST_ID)['tracks']['total'])
+        while len(tracks) < total_tracks:
+            results = spotify.playlist_items(PLAYLIST_ID, limit=100, offset=len(tracks))
+            tracks.extend(results["items"])
+        track_data = rand.choice(tracks)
+        return Track(track_data, radio)
