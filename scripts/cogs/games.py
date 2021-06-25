@@ -129,26 +129,25 @@ class SlotMachine:
 
         async def spin(ctx):
             if self.econ.can_afford(self.user, self.bet):
-                await ctx.respond(type=components.InteractionType.DeferredUpdateMessage)
+                await ctx.defer(edit_origin=True)
                 await asyncio.sleep(4)
                 self.econ.give_money(self.user, -self.bet)
                 grid = self.generate_grid()
                 won, mult = self.check_win(grid)
                 winnings = int(self.bet * mult)
                 self.econ.give_money(self.user, winnings)
-                await ctx.message.edit(embed=self.build_embed(grid, won, mult))
+                await ctx.edit_origin(embed=self.build_embed(grid, won, mult))
             else:
-                await ctx.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
-                await asyncio.sleep(5)
-                await ctx.message.delete()
+                await ctx.origin_message.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
 
 
         async def quit(ctx):
-            await ctx.message.delete()
+            await ctx.origin_message.delete()
 
 
         async def change_bet(ctx):
             pass
+
 
         if self.econ.can_afford(self.user, self.bet):
             self.econ.give_money(self.user, -self.bet)
@@ -156,8 +155,8 @@ class SlotMachine:
             won, mult = self.check_win(grid)
             winnings = int(self.bet * mult)
             game = util.InteractiveMessage(self.bot, embed=self.build_embed(grid, won, mult))
-            game.add_button(0, create_button(label="Spin", style=components.ButtonStyle.green), spin)
-            game.add_button(0, components.Button(label="Quit", style=components.ButtonStyle.red), quit)
+            game.add_button(0, util.Button(style=ButtonStyle.green, label="Spin"), callback=spin)
+            game.add_button(0, util.Button(style=ButtonStyle.red, label="Quit"), callback=quit)
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
             await game.send_message(self.ctx)

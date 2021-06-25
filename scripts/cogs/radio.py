@@ -256,7 +256,10 @@ class Track:
             while not finished:
                 try:
                     self.finished = True
-                    os.remove("song.mp3")
+                    try:
+                        os.remove("song.mp3")
+                    except:
+                        pass
                     print(f"[Track.play()] Deleted song.mp3 for '{self.readable_name}'")
                     await self.play_intermission(voice)
                     await self.next.play(voice)

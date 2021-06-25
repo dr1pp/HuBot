@@ -187,7 +187,7 @@ class InteractiveMessage:
         self.Callback = namedtuple("callback", "func args kwargs")
 
 
-    def add_button(self, button: Button, row: int = 0, callback: callable = None, *args, **kwargs,):
+    def add_button(self, row: int, button: Button, callback: callable = None, *args, **kwargs,):
         if callback:
             self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
         if button.url[0] and button.style != ButtonStyle.URL:
