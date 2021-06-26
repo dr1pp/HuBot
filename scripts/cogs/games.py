@@ -136,8 +136,9 @@ class SlotMachine(Game):
                 winnings = int(self.bet * mult)
                 self.econ.give_money(self.user, winnings)
                 if not self.econ.can_afford(self.user, self.bet):
-                    self.comps["spin"].update_attribute("disabled", True)
-                await ctx.edit_origin(embed=self.build_embed(won, mult), components=self.comps)
+                    self.buttons["spin"].update_attribute("disabled", True)
+                self.build_embed(won, mult)
+                await self.update_message()
             else:
                 await ctx.origin_message.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
 
@@ -150,10 +151,10 @@ class SlotMachine(Game):
             pass
 
 
-        self.add_button(0, util.Button(style=ButtonStyle.green,
+        self.add_button(util.Button(style=ButtonStyle.green,
                                        label="Spin",
                                        callback=util.Callback(spin)))
-        self.add_button(0, util.Button(style=ButtonStyle.red,
+        self.add_button(util.Button(style=ButtonStyle.red,
                                        label="Quit",
                                        callback=util.Callback(quit)))
         self.add_timeout(20, quit)
@@ -178,26 +179,25 @@ class SlotMachine(Game):
         self.grid = [[random.choice(self.wheel) for i in range(3)] for j in range(3)]
 
 
-    def build_embed(self, won = None, mult: float = 0) -> discord.Embed:
-        embed = discord.Embed(title=f"Slot Machine - ฿{self.bet}",
+    def build_embed(self, won = None, mult: float = 0):
+        self.embed = discord.Embed(title=f"Slot Machine - ฿{self.bet}",
                               description=f"Balance: **฿{self.econ.balance(self.user)}**",
                               colour=0x55ACEE)
-        embed.add_field(name=":black_large_square::one:",
+        self.embed.add_field(name=":black_large_square::one:",
                         value=f":blue_square: {self.grid[0][0]}\n:arrow_right: {self.grid[1][0]}\n:blue_square: {self.grid[2][0]}")
-        embed.add_field(name=":two:",
+        self.embed.add_field(name=":two:",
                         value=f"{self.grid[0][1]}\n{self.grid[1][1]}\n{self.grid[2][1]}")
-        embed.add_field(name=":three::black_large_square:",
+        self.embed.add_field(name=":three::black_large_square:",
                         value=f"{self.grid[0][2]} :blue_square:\n{self.grid[1][2]} :arrow_left:\n{self.grid[2][2]} :blue_square:")
         if won is not None:
             if won:
                 if mult == 1.0:
-                    embed.add_field(name="__Results__",
+                    self.embed.add_field(name="__Results__",
                                     value=f"**{mult}x** multiplier\nBroke even")
                 else:
-                    embed.add_field(name="__Results__", value=f"**{mult}x** multiplier\nWon **฿{int(self.bet*mult)}**")
+                    self.embed.add_field(name="__Results__", value=f"**{mult}x** multiplier\nWon **฿{int(self.bet*mult)}**")
             else:
-                embed.add_field(name="__Results__", value=f"No match\nLost **฿{int(self.bet)}**")
-        return embed
+                self.embed.add_field(name="__Results__", value=f"No match\nLost **฿{int(self.bet)}**")
 
 
 class BlackJack(Game):

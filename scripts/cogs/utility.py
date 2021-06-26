@@ -180,6 +180,7 @@ class Timer:
 
 class Button:
     def __init__(self,
+                 row: int = 0,
                  style: ButtonStyle = 2,
                  label: str = "",
                  emoji = None,
@@ -188,6 +189,7 @@ class Button:
                  disabled: bool = False,
                  callback: Callback = None
                  ):
+        self.row = row
         self.style = style
         self.label = label
         self.emoji = emoji
@@ -244,14 +246,14 @@ class InteractiveMessage:
         self.bot = bot
         self.content = content
         self.embed = embed
-        self.comps = [[] for i in range(5)]
-        self.callbacks = {}
+        self.buttons = list()
+        self.comps = [{} for i in range(5)]
         self.timeout = 30
         self.timeout_callback = None
 
 
-    def add_button(self, row: int, button: Button):
-        self.comps[row].append(button)
+    def add_button(self, button: Button):
+        self.buttons.append(button)
 
 
     def add_timeout(self, time: int, callback, *args, **kwargs):
@@ -259,19 +261,20 @@ class InteractiveMessage:
         self.timeout_callback = Callback(callback, args, kwargs)
 
 
-    def get_components_dict(self):
-        return [create_actionrow(*[button.get_button_dict() for button in row]) for row in self.comps if len(row) > 0]
+    def get_components_list(self):
+        return [create_actionrow(*[button.get_button_dict() for button in self.buttons if button.row == row]) for row in range(5)]
 
 
     async def send_message(self):
-        await self.ctx.send(self.content, embed=self.embed, components=self.get_components_dict())
+        await self.ctx.send(self.content, embed=self.embed, components=self.get_components_list())
         listening = True
         while listening:
             try:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
-                                                                                          components=self.get_components_dict(),
+                                                                                          components=self.get_components_list(),
                                                                                           timeout=self.timeout)
-                callback = self.callbacks[button_ctx.custom_id]
+                callback = [[button.callback for button in action_row if button.custom_id == button_ctx.custom_id] for action_row in self.buttons]
+                callback = self.buttons[button_ctx.custom_id].callback
                 await callback.call()
             except asyncio.TimeoutError:
                 if self.timeout_callback:
@@ -279,7 +282,7 @@ class InteractiveMessage:
 
 
     async def update_message(self):
-        await self.ctx.edit_origin(content=self.content, embed=self.embed)
+        await self.ctx.edit_origin(content=self.content, embed=self.embed, components=self.get_components_list())
 
 
 class ConfirmationMessage:
