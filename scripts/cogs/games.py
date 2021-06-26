@@ -92,11 +92,11 @@ class Games(commands.Cog):
                 return
         return None
 
-class Game:
+
+class Game(util.InteractiveMessage):
     def __init__(self, ctx, bot: commands.Bot):
-        self.ctx = ctx
+        super().__init__(bot, ctx)
         self.user = ctx.author
-        self.bot = bot
         self.players = list()
         self.econ = self.bot.get_cog("Economy").manager
 
@@ -121,13 +121,8 @@ class SlotMachine(Game):
                        ":seven:": 50
                        }
         self.wheel = []
+        self.grid = [[":question:" for i in range(3)] for j in range(3)]
         self.build_wheel()
-
-
-    def build_wheel(self):
-        for symbol in self.values.keys():
-            symbols_list = [symbol] * int(10000 / (self.values[symbol]**2))
-            self.wheel.extend(symbols_list)
 
 
     async def play(self):
@@ -135,13 +130,14 @@ class SlotMachine(Game):
         async def spin(ctx):
             if self.econ.can_afford(self.user, self.bet):
                 await ctx.defer(edit_origin=True)
-                await asyncio.sleep(4)
+                await asyncio.sleep(3)
                 self.econ.give_money(self.user, -self.bet)
-                grid = self.generate_grid()
-                won, mult = self.check_win(grid)
+                won, mult = self.check_win()
                 winnings = int(self.bet * mult)
                 self.econ.give_money(self.user, winnings)
-                await ctx.edit_origin(embed=self.build_embed(grid, won, mult))
+                if not self.econ.can_afford(self.user, self.bet):
+                    self.comps["spin"].update_attribute("disabled", True)
+                await ctx.edit_origin(embed=self.build_embed(won, mult), components=self.comps)
             else:
                 await ctx.origin_message.reply(f"You cannot afford to put **฿{self.bet}** into this machine")
 
@@ -155,48 +151,44 @@ class SlotMachine(Game):
             pass
 
 
-        if self.econ.can_afford(self.user, self.bet):
-            self.econ.give_money(self.user, -self.bet)
-            grid = self.generate_grid()
-            won, mult = self.check_win(grid)
-            winnings = int(self.bet * mult)
-            game = util.InteractiveMessage(self.bot, embed=self.build_embed(grid, won, mult))
-            game.add_button(0, util.Button(style=ButtonStyle.green, label="Spin", custom_id="quit"), callback=spin)
-            game.add_button(0, util.Button(style=ButtonStyle.red, label="Quit"), callback="quit")
-            game.add_timeout(quit)
-            self.econ.give_money(self.user, winnings)
-            await game.send_message(self.ctx)
-        else:
-            await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")
+        self.add_button(0, util.Button(style=ButtonStyle.green,
+                                       label="Spin",
+                                       callback=util.Callback(spin)))
+        self.add_button(0, util.Button(style=ButtonStyle.red,
+                                       label="Quit",
+                                       callback=util.Callback(quit)))
+        self.add_timeout(20, quit)
+        await self.send_message()
 
 
-
-    def check_win(self, grid) -> Tuple[bool, float]:
+    def build_wheel(self):
         for symbol in self.values.keys():
-            num = grid[1].count(symbol)
+            symbols_list = [symbol] * int(10000 / (self.values[symbol]**2))
+            self.wheel.extend(symbols_list)
+
+
+    def check_win(self) -> Tuple[bool, float]:
+        for symbol in self.values.keys():
+            num = self.grid[1].count(symbol)
             if num > 1:
                 return True, num / 2
         return False, 0
 
 
-    def generate_grid(self) -> list:
-        grid = []
-        for row in range(3):
-            row = []
-            for col in range(3):
-                symbol = random.choice(self.wheel)
-                row.extend([symbol])
-            grid.append(row)
-        return grid
+    def generate_grid(self):
+        self.grid = [[random.choice(self.wheel) for i in range(3)] for j in range(3)]
 
 
-    def build_embed(self, grid, won, mult: float = 0) -> discord.Embed:
+    def build_embed(self, won, mult: float = 0) -> discord.Embed:
         embed = discord.Embed(title="Slot Machine",
                               description=f"Balance: **฿{self.econ.balance(self.user)}**",
                               colour=0x55ACEE)
-        embed.add_field(name=":black_large_square::one:", value=f":blue_square: {grid[0][0]}\n:arrow_right: {grid[1][0]}\n:blue_square: {grid[2][0]}")
-        embed.add_field(name=":two:", value=f"{grid[0][1]}\n{grid[1][1]}\n{grid[2][1]}")
-        embed.add_field(name=":three::black_large_square:", value=f"{grid[0][2]} :blue_square:\n{grid[1][2]} :arrow_left:\n{grid[2][2]} :blue_square:")
+        embed.add_field(name=":black_large_square::one:",
+                        value=f":blue_square: {self.grid[0][0]}\n:arrow_right: {self.grid[1][0]}\n:blue_square: {self.grid[2][0]}")
+        embed.add_field(name=":two:",
+                        value=f"{self.grid[0][1]}\n{self.grid[1][1]}\n{self.grid[2][1]}")
+        embed.add_field(name=":three::black_large_square:",
+                        value=f"{self.grid[0][2]} :blue_square:\n{self.grid[1][2]} :arrow_left:\n{self.grid[2][2]} :blue_square:")
         if won is not None:
             if won:
                 if mult == 1.0:

@@ -149,6 +149,16 @@ def enlist_user(db, user: discord.User):
     db.execute("INSERT INTO UserData VALUES (?, 100, NULL)", (user.id,))
 
 
+class Callback:
+    def __init__(self, func, args, kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    async def call(self):
+        await self.func(*self.args, **self.kwargs)
+
+
 class Timer:
     def __init__(self, operation_str: str):
         self.operation_str = operation_str
@@ -164,7 +174,6 @@ class Timer:
         print(f"{self.operation_str} completed in {total_time.seconds}.{str(total_time.microseconds)[:3]} seconds!")
 
 
-
 class Button:
     def __init__(self,
                  style: ButtonStyle = 2,
@@ -172,15 +181,31 @@ class Button:
                  emoji = None,
                  custom_id: str = None,
                  url: str = None,
-                 disabled: bool = False):
+                 disabled: bool = False,
+                 callback: Callback = None
+                 ):
         self.style = style
         self.label = label
         self.emoji = emoji
         self.custom_id = custom_id
         self.url = url
+        if self.url and self.style != ButtonStyle.URL:
+            raise AttributeError("URL button requires URL style")
         self.disabled = disabled
+        self.callback = callback
+        self.button = self.get_button_dict()
 
-    def get_button(self):
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.custom_id == other.custom_id
+        elif isinstance(other, str):
+            return self.custom_id == other
+        else:
+            return False
+
+
+    def get_button_dict(self):
         button = create_button(
             style=self.style,
             label=self.label,
@@ -189,7 +214,7 @@ class Button:
         if self.custom_id:
             button["custom_id"] = self.custom_id
         else:
-            button["custom_id"] = self.label
+            button["custom_id"] = self.label.lower()
         if self.emoji:
             button["emoji"] = self.emoji
         if self.url:
@@ -197,42 +222,61 @@ class Button:
         return button
 
 
+    def update_attribute(self, attribute: str, value):
+        self.button[attribute] = value
+
+
+    def press(self):
+        if self.callback:
+            self.callback.call()
+        else:
+            pass
+
+
+
 class InteractiveMessage:
-    def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
+    def __init__(self, bot: commands.Bot, ctx, content: str = "", embed: discord.Embed = None):
         self.bot = bot
+        self.ctx = ctx
         self.content = content
         self.embed = embed
         self.comps = [[] for i in range(5)]
         self.callbacks = {}
-        self.timeout = None
-
-        self.Callback = namedtuple("callback", "func args kwargs")
-
-
-    def add_button(self, row: int, button: Button, callback: callable = None, *args, **kwargs,):
-        if callback:
-            self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
-        if button.url and button.style != ButtonStyle.URL:
-            raise AttributeError("URL button requires URL style")
-        self.comps[row].append(button.get_button())
+        self.timeout = 30
+        self.timeout_callback = None
 
 
-    def add_timeout(self, callback, *args, **kwargs):
-        self.timeout = self.Callback(callback, args, kwargs)
+    def add_button(self, row: int, button: Button):
+        self.comps[row].append(button)
 
 
-    async def send_message(self, ctx: SlashContext):
-        comps = [create_actionrow(*row) for row in self.comps if len(row) > 0]
-        await ctx.send(self.content, embed=self.embed, components=comps)
+    def add_timeout(self, time: int, callback, *args, **kwargs):
+        self.timeout = time
+        self.timeout_callback = Callback(callback, args, kwargs)
+
+
+    def get_components_dict(self):
+        return [create_actionrow(*[button.get_button_dict() for button in row]) for row in self.comps if len(row) > 0]
+
+
+    async def send_message(self):
+        await self.ctx.send(self.content, embed=self.embed, components=self.get_components_dict())
+        await self.ctx.defer()
         listening = True
         while listening:
             try:
-                button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot, components=self.comps)
+                button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
+                                                                                          components=self.get_components_dict(),
+                                                                                          timeout=self.timeout)
                 callback = self.callbacks[button_ctx.custom_id]
-                await callback.func(button_ctx, *callback.args, **callback.kwargs)
+                await callback.call()
             except asyncio.TimeoutError:
-                if self.timeout:
-                    self.timeout.callback(*self.timeout.args, **self.timeout.kwargs)
+                if self.timeout_callback:
+                    self.timeout_callback.call()
+
+
+    async def update_message(self):
+        await self.ctx.edit_origin(content=self.content, embed=self.embed)
 
 
 class ConfirmationMessage:
