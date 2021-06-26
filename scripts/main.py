@@ -16,6 +16,8 @@ RED_CARDS_GUILD_ID = 839985921302069248
 BLACK_CARDS_GUILD_ID = 839986047035506708
 
 
+
+
 warnings.filterwarnings("ignore")
 
 

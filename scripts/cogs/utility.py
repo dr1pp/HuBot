@@ -275,14 +275,14 @@ class InteractiveMessage:
         self.bot = bot
         self.content = content
         self.embed = embed
-        self.buttons = list()
+        self.buttons = {}
         self.comps = [{} for i in range(5)]
         self.timeout = 30
         self.timeout_callback = None
 
 
     def add_button(self, button: Button):
-        self.buttons.append(button)
+        self.buttons[button.custom_id] = button
 
 
     def add_timeout(self, time: int, callback, *args, **kwargs):
@@ -317,7 +317,9 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.custom_id][0]
+                print(self.buttons)
+                print(button_ctx.custom_id)
+                callback = self.buttons[button_ctx.custom_id].callback
                 await callback.call()
             except asyncio.TimeoutError:
                 if self.timeout_callback:
