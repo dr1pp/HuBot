@@ -169,7 +169,7 @@ class Button:
     def __init__(self,
                  style: ButtonStyle = 2,
                  label: str = "",
-                 emoji: discord.Emoji = None,
+                 emoji = None,
                  custom_id: str = None,
                  url: str = None,
                  disabled: bool = False):
