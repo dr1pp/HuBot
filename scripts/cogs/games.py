@@ -92,14 +92,19 @@ class Games(commands.Cog):
                 return
         return None
 
-
-class SlotMachine:
-    def __init__(self, ctx, bot, bet: int):
+class Game:
+    def __init__(self, ctx, bot: commands.Bot):
         self.ctx = ctx
+        self.user = ctx.message.author
         self.bot = bot
-        self.bet = bet
-        self.user = self.ctx.author
+        self.players = list()
         self.econ = self.bot.get_cog("Economy").manager
+
+
+class SlotMachine(Game):
+    def __init__(self, ctx, bot: commands.Bot, bet: int):
+        super().__init__(ctx, bot)
+        self.bet = bet
         self.values = {":watermelon:": 1,
                        ":apple:": 1,
                        ":tangerine:": 1.5,
@@ -155,8 +160,8 @@ class SlotMachine:
             won, mult = self.check_win(grid)
             winnings = int(self.bet * mult)
             game = util.InteractiveMessage(self.bot, embed=self.build_embed(grid, won, mult))
-            game.add_button(0, util.Button(style=ButtonStyle.green, label="Spin", custom_id = "quit"), callback=spin)
-            game.add_button(0, util.Button(style=ButtonStyle.red, label="Quit"), callback = "quit")
+            game.add_button(0, util.Button(style=ButtonStyle.green, label="Spin", custom_id="quit"), callback=spin)
+            game.add_button(0, util.Button(style=ButtonStyle.red, label="Quit"), callback="quit")
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
             await game.send_message(self.ctx)
@@ -200,7 +205,8 @@ class SlotMachine:
                 embed.add_field(name="__Results__", value=f"No match\nLost **฿{int(self.bet)}**")
         return embed
 
-class BlackJack:
+
+class BlackJack(Game):
 
     class Player:
         def __init__(self, bot: commands.Bot, user: discord.User, bet: int):
@@ -271,14 +277,10 @@ class BlackJack:
 
 
     def __init__(self, ctx, bot, minimum: int=10):
-        self.ctx = ctx
-        self.bot = bot
-        self.econ = self.bot.get_cog("Economy").manager
+        super().__init__(ctx, bot)
         self.minimum = minimum
-        self.players = list()
         self.dealer = self.Player(self.bot, self.bot.user, 0)
         self.reactions = ("✅", "❌")
-
 
 
     async def play(self):
@@ -460,13 +462,11 @@ class BlackJack:
                 return player
         return None
 
-class ConnectFour:
+class ConnectFour(Game):
     def __init__(self, ctx, bot, players, wager):
-        self.ctx = ctx
-        self.bot = bot
+        super.__init__(ctx, bot)
         self.players = players
         self.wager = wager
-        self.econ = self.bot.get_cog("Economy").manager
         self.turn = True
         self.pieces = [":yellow_circle:", ":red_circle:"]
         self.emotes = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣']

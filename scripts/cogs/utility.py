@@ -180,6 +180,7 @@ class Button:
         self.url = url
         self.disabled = disabled
 
+
 class InteractiveMessage:
     def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
         self.bot = bot
@@ -211,7 +212,7 @@ class InteractiveMessage:
         if button.url:
             print(f"{button.url=}")
             self.comps[row][-1]["url"] = button.url
-        print(button.label, self.comps[row][-1]["url"])
+        print(self.comps[row][-1])
 
 
     def add_timeout(self, callback, *args, **kwargs):
