@@ -299,6 +299,7 @@ class InteractiveMessage:
 
 
     async def send_message(self):
+        print(self.embed)
         await self.ctx.send(self.content, embed=self.embed, components=self.get_action_rows())
         listening = True
         while listening:
