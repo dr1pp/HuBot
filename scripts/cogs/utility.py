@@ -258,6 +258,12 @@ class InteractiveMessage:
             The embed of the message to be sent
 
 
+    Methods
+    -------
+        add_button:
+
+
+
     """
 
     def __init__(self, ctx, bot: commands.Bot, content: str = "", embed: discord.Embed = None):
@@ -307,7 +313,6 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                callback = [[button.callback for button in action_row if button.custom_id == button_ctx.custom_id] for action_row in self.buttons]
                 callback = self.buttons[button_ctx.custom_id].callback
                 await callback.call()
             except asyncio.TimeoutError:
