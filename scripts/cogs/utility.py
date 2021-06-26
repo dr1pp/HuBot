@@ -292,9 +292,9 @@ class InteractiveMessage:
 
     def get_action_rows(self):
         return [create_actionrow(
-                *[button.get_button_dict() for button in self.buttons if button.row == row])
+                *[button.get_button_dict() for button in self.buttons.items() if button.row == row])
                 for row in range(5) if len(
-                [button.row for button in self.buttons if button.row == row]) > 0]
+                [button.row for button in self.buttons.items() if button.row == row]) > 0]
 
 
 
@@ -309,7 +309,6 @@ class InteractiveMessage:
 
 
     async def send_message(self):
-        print(self.embed)
         await self.ctx.send(self.content, embed=self.embed, components=self.get_action_rows())
         listening = True
         while listening:

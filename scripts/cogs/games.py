@@ -122,7 +122,6 @@ class SlotMachine(Game):
         self.wheel = []
         self.grid = [[":question:" for i in range(3)] for j in range(3)]
         self.build_embed()
-        print(self.embed)
         self.build_wheel()
 
 
