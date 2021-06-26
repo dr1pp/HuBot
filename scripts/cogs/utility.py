@@ -239,9 +239,9 @@ class Button:
 
 
 class InteractiveMessage:
-    def __init__(self, bot: commands.Bot, ctx, content: str = "", embed: discord.Embed = None):
-        self.bot = bot
+    def __init__(self, ctx, bot: commands.Bot, content: str = "", embed: discord.Embed = None):
         self.ctx = ctx
+        self.bot = bot
         self.content = content
         self.embed = embed
         self.comps = [[] for i in range(5)]

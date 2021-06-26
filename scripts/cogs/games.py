@@ -94,7 +94,7 @@ class Games(commands.Cog):
 
 class Game(util.InteractiveMessage):
     def __init__(self, ctx, bot: commands.Bot):
-        super().__init__(bot, ctx)
+        super().__init__(ctx, bot)
         self.user = ctx.author
         self.players = list()
         self.econ = self.bot.get_cog("Economy").manager
@@ -121,6 +121,7 @@ class SlotMachine(Game):
                        }
         self.wheel = []
         self.grid = [[":question:" for i in range(3)] for j in range(3)]
+        self.embed = self.build_embed()
         self.build_wheel()
 
 
@@ -178,7 +179,7 @@ class SlotMachine(Game):
         self.grid = [[random.choice(self.wheel) for i in range(3)] for j in range(3)]
 
 
-    def build_embed(self, won, mult: float = 0) -> discord.Embed:
+    def build_embed(self, won = None, mult: float = 0) -> discord.Embed:
         embed = discord.Embed(title="Slot Machine",
                               description=f"Balance: **฿{self.econ.balance(self.user)}**",
                               colour=0x55ACEE)
