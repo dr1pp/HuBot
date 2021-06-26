@@ -241,6 +241,25 @@ class Button:
 
 
 class InteractiveMessage:
+    """
+    Dynamic slash command message using buttons for user interaction
+
+    ...
+
+    Attributes
+    ----------
+        ctx:
+            The context object within which the message will operate
+        bot: (commands.Bot)
+            The bot which will be controlling the interaction
+        content: str
+            The content of the message to be sent
+        embed: discord.Embed
+            The embed of the message to be sent
+
+
+    """
+
     def __init__(self, ctx, bot: commands.Bot, content: str = "", embed: discord.Embed = None):
         self.ctx = ctx
         self.bot = bot
@@ -261,17 +280,31 @@ class InteractiveMessage:
         self.timeout_callback = Callback(callback, args, kwargs)
 
 
-    def get_components_list(self):
-        return [create_actionrow(*[button.get_button_dict() for button in self.buttons if button.row == row]) for row in range(5)]
+    def get_action_rows(self):
+        return [create_actionrow(
+                *[button.get_button_dict() for button in self.buttons if button.row == row])
+                for row in range(5) if len(
+                [button.row for button in self.buttons if button.row == row]) > 0]
+
+
+
+
+        # comps = [[] for i in range(5)]
+        # for button in self.buttons:
+        #     if len(comps[button.row]) < 5:
+        #         comps[button.row].append(button.get_button_dict())
+        #     else:
+        #         raise IndexError("Action Rows can contain between 1 and 5 components!")
+
 
 
     async def send_message(self):
-        await self.ctx.send(self.content, embed=self.embed, components=self.get_components_list())
+        await self.ctx.send(self.content, embed=self.embed, components=self.get_action_rows())
         listening = True
         while listening:
             try:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
-                                                                                          components=self.get_components_list(),
+                                                                                          components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
                 callback = [[button.callback for button in action_row if button.custom_id == button_ctx.custom_id] for action_row in self.buttons]
                 callback = self.buttons[button_ctx.custom_id].callback
@@ -282,7 +315,7 @@ class InteractiveMessage:
 
 
     async def update_message(self):
-        await self.ctx.edit_origin(content=self.content, embed=self.embed, components=self.get_components_list())
+        await self.ctx.edit_origin(content=self.content, embed=self.embed, components=self.get_action_rows())
 
 
 class ConfirmationMessage:
