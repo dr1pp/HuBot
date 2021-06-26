@@ -147,6 +147,7 @@ class SlotMachine(Game):
 
 
         async def quit(ctx):
+            await ctx.defer(edit_origin=True)
             await ctx.origin_message.delete()
 
 
@@ -165,6 +166,7 @@ class SlotMachine(Game):
             game.add_timeout(quit)
             self.econ.give_money(self.user, winnings)
             await game.send_message(self.ctx)
+            await
         else:
             await self.ctx.reply(f"You do not have enough **e-฿ux** to do that")
 

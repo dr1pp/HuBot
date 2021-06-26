@@ -206,6 +206,8 @@ class InteractiveMessage:
         if button.custom_id:
             print(f"{button.custom_id=}")
             self.comps[row][-1]["custom_id"] = button.custom_id
+        else:
+            self.comps[row][-1]["custom_id"] = button.label
         if button.emoji:
             print(f"{button.emoji=}")
             self.comps[row][-1]["emoji"] = button.emoji
