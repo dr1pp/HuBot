@@ -203,10 +203,13 @@ class InteractiveMessage:
             disabled=button.disabled
         ))
         if button.custom_id:
+            print(f"{button.custom_id=}")
             self.comps[row][-1]["emoji"] = button.custom_id
         if button.emoji:
+            print(f"{button.emoji=}")
             self.comps[row][-1]["emoji"] = button.emoji
         if button.url:
+            print(f"{button.url=}")
             self.comps[row][-1]["url"] = button.url
 
 
