@@ -211,6 +211,7 @@ class InteractiveMessage:
         if button.url:
             print(f"{button.url=}")
             self.comps[row][-1]["url"] = button.url
+        print(button.label, self.comps[row][-1]["url"])
 
 
     def add_timeout(self, callback, *args, **kwargs):
