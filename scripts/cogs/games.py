@@ -95,7 +95,7 @@ class Games(commands.Cog):
 class Game:
     def __init__(self, ctx, bot: commands.Bot):
         self.ctx = ctx
-        self.user = ctx.message.author
+        self.user = ctx.author
         self.bot = bot
         self.players = list()
         self.econ = self.bot.get_cog("Economy").manager
