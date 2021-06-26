@@ -242,28 +242,32 @@ class Button:
 
 class InteractiveMessage:
     """
-    Dynamic slash command message using buttons for user interaction
-
+    Dynamic slash command message using buttons for user interaction.
     ...
 
     Attributes
     ----------
         ctx:
-            The context object within which the message will operate
+            the message context
         bot: (commands.Bot)
-            The bot which will be controlling the interaction
-        content: str
-            The content of the message to be sent
-        embed: discord.Embed
-            The embed of the message to be sent
-
+            the bot sending the message
+        content: str, optional
+            the text body of the message
+        embed: discord.Embed, optional
+            the message embed
 
     Methods
     -------
-        add_button:
-
-
-
+        add_button(button):
+            Adds a button to the objects list of buttons
+        add_timeout(time, callback, *args, **kwargs):
+            Adds a function to be called if the user does not interact with the message in a set amount of time
+        get_action_rows():
+            Returns a list of action_rows containing all of the Button dictionaries ready to be sent in a message
+        send_message():
+            Sends the interactive message to the discord.Messagable specified by the given context object
+        update_message():
+            Updates the message to represent the current state of the InteractiveMessage object
     """
 
     def __init__(self, ctx, bot: commands.Bot, content: str = "", embed: discord.Embed = None):
@@ -313,7 +317,7 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                callback = self.buttons[button_ctx.custom_id].callback
+                callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.id]
                 await callback.call()
             except asyncio.TimeoutError:
                 if self.timeout_callback:
