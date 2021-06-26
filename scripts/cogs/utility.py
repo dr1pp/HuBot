@@ -190,9 +190,9 @@ class Button:
             button["custom_id"] = self.custom_id
         else:
             button["custom_id"] = self.label
-        if button.emoji:
+        if self.emoji:
             button["emoji"] = self.emoji
-        if button.url:
+        if self.url:
             button["url"] = self.url
         return button
 

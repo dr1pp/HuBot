@@ -191,7 +191,9 @@ class SlotMachine(Game):
 
 
     def build_embed(self, grid, won, mult: float = 0) -> discord.Embed:
-        embed = discord.Embed(title="Slot Machine", description=f"Balance: **฿{self.econ.balance(self.user)}**")
+        embed = discord.Embed(title="Slot Machine",
+                              description=f"Balance: **฿{self.econ.balance(self.user)}**",
+                              colour=0x55ACEE)
         embed.add_field(name=":black_large_square::one:", value=f":blue_square: {grid[0][0]}\n:arrow_right: {grid[1][0]}\n:blue_square: {grid[2][0]}")
         embed.add_field(name=":two:", value=f"{grid[0][1]}\n{grid[1][1]}\n{grid[2][1]}")
         embed.add_field(name=":three::black_large_square:", value=f"{grid[0][2]} :blue_square:\n{grid[1][2]} :arrow_left:\n{grid[2][2]} :blue_square:")
