@@ -317,7 +317,7 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.custom_id]
+                callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.custom_id][0]
                 await callback.call()
             except asyncio.TimeoutError:
                 if self.timeout_callback:
