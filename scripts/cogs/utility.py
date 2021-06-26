@@ -214,7 +214,7 @@ class InteractiveMessage:
             self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
         if button.url and button.style != ButtonStyle.URL:
             raise AttributeError("URL button requires URL style")
-        self.comps[row].append(Button.get_button())
+        self.comps[row].append(button.get_button())
 
 
     def add_timeout(self, callback, *args, **kwargs):
