@@ -275,14 +275,14 @@ class InteractiveMessage:
         self.bot = bot
         self.content = content
         self.embed = embed
-        self.buttons = {}
+        self.buttons = list()
         self.comps = [{} for i in range(5)]
         self.timeout = 30
         self.timeout_callback = None
 
 
     def add_button(self, button: Button):
-        self.buttons[button.custom_id] = button
+        self.buttons.append(button)
 
 
     def add_timeout(self, time: int, callback, *args, **kwargs):
@@ -291,24 +291,26 @@ class InteractiveMessage:
 
 
     def get_action_rows(self):
-        return [create_actionrow(
-                *[button.get_button_dict() for button in self.buttons.items() if button.row == row])
-                for row in range(5) if len(
-                [button.row for button in self.buttons.items() if button.row == row]) > 0]
+        # return [create_actionrow(
+        #         *[button.get_button_dict() for button in self.buttons if button.row == row])
+        #         for row in range(5) if len(
+        #         [button.row for button in self.buttons if button.row == row]) > 0]
 
 
 
 
-        # comps = [[] for i in range(5)]
-        # for button in self.buttons:
-        #     if len(comps[button.row]) < 5:
-        #         comps[button.row].append(button.get_button_dict())
-        #     else:
-        #         raise IndexError("Action Rows can contain between 1 and 5 components!")
+        rows = [[] for i in range(5)]
+        for button in self.buttons:
+            if len(rows[button.row]) <= 5:
+                rows[button.row].append(button.get_button_dict())
+            else:
+                raise IndexError("Action Rows can contain between 1 and 5 components!")
+        return [create_actionrow(*[comp for comp in row]) for row in rows if len(row) > 0]
 
 
 
     async def send_message(self):
+        print(self.embed)
         await self.ctx.send(self.content, embed=self.embed, components=self.get_action_rows())
         listening = True
         while listening:
@@ -316,9 +318,7 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                print(self.buttons)
-                print(button_ctx.custom_id)
-                callback = self.buttons[button_ctx.custom_id].callback
+                callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.custom_id][0]
                 await callback.call()
             except asyncio.TimeoutError:
                 if self.timeout_callback:
