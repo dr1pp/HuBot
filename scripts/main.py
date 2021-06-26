@@ -50,7 +50,10 @@ async def on_ready():
     emotes.extend(await bot.get_guild(RED_CARDS_GUILD_ID).fetch_emojis())
     bot.playing_cards = [Card(emote) for emote in emotes if emote.name != "card_back"]
     embed = Embed(title="Bot Online :white_check_mark:", colour=0x77B255)
-    embed.add_field(name="Ready at", value=str(datetime.datetime.now()), inline=True)
+    now = datetime.datetime.now()
+    embed.add_field(name="Ready at",
+                    value=f"{now.hour}:{now.minute}:{int(now.microsecond/1000)}\n{now.day}/{now.month}/{now.year}",
+                    inline=True)
     startup_time = datetime.datetime.now() - init_time
     embed.add_field(name="Startup Duration", value=f"{startup_time.seconds}.{str(startup_time.microseconds)[:3]} seconds")
     await bot.me.send(embed=embed)
