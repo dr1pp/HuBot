@@ -129,7 +129,6 @@ class SlotMachine(Game):
 
         async def spin(ctx):
             if self.econ.can_afford(self.user, self.bet):
-                await ctx.defer(edit_origin=True)
                 await asyncio.sleep(3)
                 self.econ.give_money(self.user, -self.bet)
                 won, mult = self.check_win()
@@ -143,7 +142,6 @@ class SlotMachine(Game):
 
 
         async def quit(ctx):
-            await ctx.defer(edit_origin=True)
             await ctx.origin_message.delete()
 
 
