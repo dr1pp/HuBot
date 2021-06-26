@@ -180,6 +180,22 @@ class Button:
         self.url = url
         self.disabled = disabled
 
+    def get_button(self):
+        button = create_button(
+            style=self.style,
+            label=self.label,
+            disabled=self.disabled
+        )
+        if self.custom_id:
+            button["custom_id"] = self.custom_id
+        else:
+            button["custom_id"] = self.label
+        if button.emoji:
+            button["emoji"] = self.emoji
+        if button.url:
+            button["url"] = self.url
+        return button
+
 
 class InteractiveMessage:
     def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
@@ -198,23 +214,7 @@ class InteractiveMessage:
             self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
         if button.url and button.style != ButtonStyle.URL:
             raise AttributeError("URL button requires URL style")
-        self.comps[row].append(create_button(
-            style=button.style,
-            label=button.label,
-            disabled=button.disabled
-        ))
-        if button.custom_id:
-            print(f"{button.custom_id=}")
-            self.comps[row][-1]["custom_id"] = button.custom_id
-        else:
-            self.comps[row][-1]["custom_id"] = button.label
-        if button.emoji:
-            print(f"{button.emoji=}")
-            self.comps[row][-1]["emoji"] = button.emoji
-        if button.url:
-            print(f"{button.url=}")
-            self.comps[row][-1]["url"] = button.url
-        print(self.comps[row][-1])
+        self.comps[row].append(Button.get_button())
 
 
     def add_timeout(self, callback, *args, **kwargs):
