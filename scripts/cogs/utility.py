@@ -164,15 +164,21 @@ class Timer:
         print(f"{self.operation_str} completed in {total_time.seconds}.{str(total_time.microseconds)[:3]} seconds!")
 
 
-@dataclass
-class Button:
-    style: ButtonStyle = 2,
-    label: str = "",
-    emoji: discord.Emoji = None,
-    custom_id: str = None,
-    url: str = None,
-    disabled: bool = False
 
+class Button:
+    def __init__(self,
+                 style: ButtonStyle = 2,
+                 label: str = "",
+                 emoji: discord.Emoji = None,
+                 custom_id: str = None,
+                 url: str = None,
+                 disabled: bool = False):
+        self.style = style
+        self.label = label
+        self.emoji = emoji
+        self.custom_id = custom_id
+        self.url = url
+        self.disabled = disabled
 
 class InteractiveMessage:
     def __init__(self, bot: discord.Client, content: str = "", embed: discord.Embed = None):
@@ -189,18 +195,19 @@ class InteractiveMessage:
     def add_button(self, row: int, button: Button, callback: callable = None, *args, **kwargs,):
         if callback:
             self.callbacks[button.custom_id] = self.Callback(callback, args, kwargs)
-        if button.url[0] and button.style != ButtonStyle.URL:
+        if button.url and button.style != ButtonStyle.URL:
             raise AttributeError("URL button requires URL style")
         self.comps[row].append(create_button(
             style=button.style,
             label=button.label,
-            custom_id=button.custom_id,
             disabled=button.disabled
         ))
-        if button.emoji[0]:
-            self.comps[row][-1]["emoji"] = button.emoji[0]
-        if button.url[0]:
-            self.comps[row][-1]["url"] = button.url[0]
+        if button.custom_id:
+            self.comps[row][-1]["emoji"] = button.custom_id
+        if button.emoji:
+            self.comps[row][-1]["emoji"] = button.emoji
+        if button.url:
+            self.comps[row][-1]["url"] = button.url
 
 
     def add_timeout(self, callback, *args, **kwargs):
