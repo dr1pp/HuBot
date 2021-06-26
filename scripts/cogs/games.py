@@ -8,7 +8,6 @@ import discord_components as components
 
 from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
-from discord_slash.utils.manage_components import create_button
 from discord_slash.utils.manage_commands import create_option, create_choice
 from discord_slash.model import ButtonStyle, SlashCommandOptionType
 from typing import Tuple
@@ -214,7 +213,7 @@ class BlackJack(Game):
             self.playing = True
 
 
-        def give_random_cards(self, count: int=1):
+        def give_random_cards(self, count: int = 1):
             self.cards.extend(random.choice(self.bot.playing_cards) for i in range(count))
 
 
@@ -459,7 +458,7 @@ class BlackJack(Game):
 
 class ConnectFour(Game):
     def __init__(self, ctx, bot, players, wager):
-        super.__init__(ctx, bot)
+        super().__init__(ctx, bot)
         self.players = players
         self.wager = wager
         self.turn = True

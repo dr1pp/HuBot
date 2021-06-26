@@ -149,8 +149,12 @@ def enlist_user(db, user: discord.User):
     db.execute("INSERT INTO UserData VALUES (?, 100, NULL)", (user.id,))
 
 
+# TODO : Create member class to replace current economy system to be more object oriented
+#        Possibly with a decorator for commands which automatically creates the Member object
+
+
 class Callback:
-    def __init__(self, func, args, kwargs):
+    def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
         self.kwargs = kwargs
