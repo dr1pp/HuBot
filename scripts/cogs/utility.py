@@ -163,9 +163,10 @@ class Callback:
         self.func = func
         self.args = args
         self.kwargs = kwargs
+        self.ctx = None
 
     async def call(self):
-        await self.func(*self.args, **self.kwargs)
+        await self.func(self.ctx, *self.args, **self.kwargs)
 
 
 class Timer:
@@ -286,6 +287,8 @@ class InteractiveMessage:
 
 
     def add_button(self, button: Button):
+        if button.callback:
+            button.callback.ctx = self.ctx
         self.buttons.append(button)
 
 
