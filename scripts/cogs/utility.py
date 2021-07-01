@@ -314,7 +314,7 @@ class InteractiveMessage:
 
 
     async def update_message(self):
-        await self.ctx.edit(content=self.content, embed=self.embed, components=self.get_action_rows())
+        await self.ctx.message.edit(content=self.content, embed=self.embed, components=self.get_action_rows())
 
 
 class ConfirmationMessage(InteractiveMessage):
