@@ -222,10 +222,9 @@ class Button:
             label=self.label,
             disabled=self.disabled
         )
-        if self.custom_id:
-            button["custom_id"] = self.custom_id
-        else:
-            button["custom_id"] = self.label.lower()
+        if not self.custom_id:
+            self.custom_id = self.label.lower()
+        button["custom_id"] = self.custom_id
         if self.emoji:
             button["emoji"] = self.emoji
         if self.url:
