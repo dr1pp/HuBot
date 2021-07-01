@@ -79,15 +79,17 @@ class Utility(commands.Cog):
         await ctx.defer()
         if hex_string := get_valid_hex(colour):
             results = self.bot.db.get("SELECT role_id FROM UserData WHERE id = ?", (ctx.author_id,))
-            print(results)
             if len(results) > 0:
                 role_id = results[0][0]
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
                 await role.edit(colour=discord.Colour(hex_string))
+                await ctx.send(f"Role colour for {role.mention} set as {colour}")
             else:
                 await ctx.send("You need to claim your role using /claim_role before you can change your colour!",
                                hidden=True)
                 return
+        else:
+            await ctx.send(f"'{colour}' is not a valid hex string")
 
 
     @cog_ext.cog_slash(name="claim_role",
