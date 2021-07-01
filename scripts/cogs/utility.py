@@ -158,17 +158,6 @@ def enlist_user(db, user: discord.User):
 #        Possibly with a decorator for commands which automatically creates the Member object
 
 
-class Callback:
-    def __init__(self, func, *args, **kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.ctx = None
-
-    async def call(self, ctx):
-        await self.func(ctx, *self.args, **self.kwargs)
-
-
 class Timer:
     def __init__(self, operation_str: str):
         self.operation_str = operation_str
@@ -182,6 +171,17 @@ class Timer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         total_time = datetime.datetime.now() - self.start_time
         print(f"{self.operation_str} completed in {total_time.seconds}.{str(total_time.microseconds)[:3]} seconds!")
+
+
+class Callback:
+    def __init__(self, func, *args, **kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.ctx = None
+
+    async def call(self, ctx):
+        await self.func(ctx, *self.args, **self.kwargs)
 
 
 class Button:
@@ -288,14 +288,6 @@ class InteractiveMessage:
 
 
     def get_action_rows(self):
-        # return [create_actionrow(
-        #         *[button.get_button_dict() for button in self.buttons if button.row == row])
-        #         for row in range(5) if len(
-        #         [button.row for button in self.buttons if button.row == row]) > 0]
-
-
-
-
         rows = [[] for i in range(5)]
         for button in self.buttons:
             if len(rows[button.row]) <= 5:
@@ -322,7 +314,7 @@ class InteractiveMessage:
 
 
     async def update_message(self):
-        await self.ctx.edit_origin(content=self.content, embed=self.embed, components=self.get_action_rows())
+        await self.ctx.edit(content=self.content, embed=self.embed, components=self.get_action_rows())
 
 
 class ConfirmationMessage(InteractiveMessage):
