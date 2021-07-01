@@ -165,8 +165,8 @@ class Callback:
         self.kwargs = kwargs
         self.ctx = None
 
-    async def call(self):
-        await self.func(self.ctx, *self.args, **self.kwargs)
+    async def call(self, ctx):
+        await self.func(ctx, *self.args, **self.kwargs)
 
 
 class Timer:
@@ -237,14 +237,6 @@ class Button:
         self.button[attribute] = value
 
 
-    def press(self):
-        if self.callback:
-            self.callback.call()
-        else:
-            pass
-
-
-
 class InteractiveMessage:
     """
     Dynamic slash command message using buttons for user interaction.
@@ -287,8 +279,6 @@ class InteractiveMessage:
 
 
     def add_button(self, button: Button):
-        if button.callback:
-            button.callback.ctx = self.ctx
         self.buttons.append(button)
 
 
@@ -315,7 +305,6 @@ class InteractiveMessage:
         return [create_actionrow(*[comp for comp in row]) for row in rows if len(row) > 0]
 
 
-
     async def send_message(self):
         print(self.embed)
         await self.ctx.send(self.content, embed=self.embed, components=self.get_action_rows())
@@ -325,10 +314,8 @@ class InteractiveMessage:
                 button_ctx: ComponentContext = await manage_components.wait_for_component(self.bot,
                                                                                           components=self.get_action_rows(),
                                                                                           timeout=self.timeout)
-                print([button.custom_id for button in self.buttons])
-                print(f"{button_ctx.custom_id=}")
                 callback = [button.callback for button in self.buttons if button.custom_id == button_ctx.custom_id][0]
-                await callback.call()
+                await callback.call(button_ctx)
             except asyncio.TimeoutError:
                 if self.timeout_callback:
                     self.timeout_callback.call()
@@ -338,11 +325,9 @@ class InteractiveMessage:
         await self.ctx.edit_origin(content=self.content, embed=self.embed, components=self.get_action_rows())
 
 
-class ConfirmationMessage:
-    def __init__(self, bot: discord.Client, ctx, content: str, timeout: int = 15):
-        self.bot = bot
-        self.ctx = ctx
-        self.content = content
+class ConfirmationMessage(InteractiveMessage):
+    def __init__(self, bot, ctx, content: str, timeout: int = 15):
+        super().__init__(ctx, bot, content)
         self.timeout = timeout
         self.choosing = True
 

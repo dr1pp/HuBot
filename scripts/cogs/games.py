@@ -128,7 +128,7 @@ class SlotMachine(Game):
     async def play(self):
 
         async def spin(ctx):
-            await ctx.defer()
+            await ctx.defer(edit_origin=True)
             if self.econ.can_afford(self.user, self.bet):
                 await asyncio.sleep(3)
                 self.econ.give_money(self.user, -self.bet)
