@@ -83,7 +83,10 @@ class Utility(commands.Cog):
                 role_id = results[0][0]
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
                 await role.edit(colour=discord.Colour(hex_string))
-                await ctx.send(f"Role colour for {role.mention} set as {colour}")
+                embed = discord.Embed(title="Colour Set",
+                                      description=f"Colour of {role.mention} set as {colour}",
+                                      colour=role.colour)
+                await ctx.send(embed=embed)
             else:
                 await ctx.send("You need to claim your role using /claim_role before you can change your colour!",
                                hidden=True)
