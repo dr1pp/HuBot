@@ -250,7 +250,7 @@ class Track:
         print(f"[Track.play()] Downloading next track")
         self.next.download()
         await asyncio.sleep(self.info.duration_s)
-        print(f"[Track.play()] {self.readable_name} sleep finished")
+        print(f"[Track.play()] Finished playing '{self.readable_name}'")
         finished = False
         if not self.skipped:
             while not finished:
