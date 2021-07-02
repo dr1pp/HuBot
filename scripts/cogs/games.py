@@ -132,6 +132,7 @@ class SlotMachine(Game):
             if self.econ.can_afford(self.user, self.bet):
                 await asyncio.sleep(3)
                 self.econ.give_money(self.user, -self.bet)
+                self.generate_grid()
                 won, mult = self.check_win()
                 winnings = int(self.bet * mult)
                 self.econ.give_money(self.user, winnings)
